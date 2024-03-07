@@ -48,6 +48,13 @@ public class Event implements Serializable {
     }
 
     /**
+     * No-argument constructor so that Event can be deserialized
+     */
+    public Event() {
+
+    }
+
+    /**
      * Gets the unique identifier for the event.
      * @return the event's unique identifier
      */

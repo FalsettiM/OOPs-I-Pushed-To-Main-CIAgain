@@ -18,6 +18,7 @@ import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.DocumentReference;
+import com.oopsipushedtomain.Announcements.AnnouncementListActivity;
 
 
 import java.text.SimpleDateFormat;
@@ -208,6 +209,7 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
         eventsButton = findViewById(R.id.eventsButton);
         announcementsButton = findViewById(R.id.announcementsButton);
         scanQRCodeButton = findViewById(R.id.scanQRCodeButton);
+        announcementsButton = findViewById(R.id.announcementsButton);
 
         // Initialize switch
         toggleGeolocationSwitch = findViewById(R.id.toggleGeolocationSwitch);
@@ -232,6 +234,14 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(ProfileActivity.this, EventListActivity.class);
+                startActivity(intent);
+            }
+        });
+        announcementsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(ProfileActivity.this, AnnouncementListActivity.class);
+                intent.putExtra("userId", userId);
                 startActivity(intent);
             }
         });

@@ -4,6 +4,7 @@ import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -13,6 +14,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.oopsipushedtomain.Announcements.SendAnnouncementActivity;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -44,7 +46,7 @@ public class EventDetailsActivity extends AppCompatActivity {
     private EditText eventEndTimeEdit;
     private EditText eventDescriptionEdit;
     private ImageView eventPosterEdit;
-    private Button eventSaveButton;
+    private Button eventSaveButton, sendNotificationButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +59,7 @@ public class EventDetailsActivity extends AppCompatActivity {
         eventDescriptionEdit = findViewById(R.id.event_details_organizer_description_e);
         eventPosterEdit = findViewById(R.id.eventPosterImageViewEdit);
         eventSaveButton = findViewById(R.id.btnSaveEventDetails);
+        sendNotificationButton = findViewById(R.id.btnSendNotification);
 
         eventStartTimeEdit.setOnClickListener(v -> showDateTimePicker(eventStartTimeEdit));
         eventEndTimeEdit.setOnClickListener(v -> showDateTimePicker(eventEndTimeEdit));
@@ -97,8 +100,9 @@ public class EventDetailsActivity extends AppCompatActivity {
         });
 
         findViewById(R.id.btnSendNotification).setOnClickListener(v -> {
-            //Intent intent = new Intent(this, SendNotificationActivity.class);
-            //startActivity(intent);
+            Intent intent = new Intent(EventDetailsActivity.this, SendAnnouncementActivity.class);
+            intent.putExtra("eventId", event.getEventId());
+            startActivity(intent);
         });
 
         findViewById(R.id.btnViewLimitAttendees).setOnClickListener(v -> {
