@@ -22,8 +22,8 @@ import java.util.Locale;
  * It utilizes a RecyclerView to display the profiles using ProfileListAdapter.
  */
 public class ProfileListActivity extends AppCompatActivity {
-    private RecyclerView profilesRecyclerView; // RecyclerView to display profiles
-    private ProfileListAdapter profileAdapter; // Adapter for profiles
+    RecyclerView profilesRecyclerView; // RecyclerView to display profiles
+    ProfileListAdapter profileAdapter; // Adapter for profiles
     private List<Profile> profileList = new ArrayList<>(); // List to store profiles
 
     @Override
@@ -43,7 +43,7 @@ public class ProfileListActivity extends AppCompatActivity {
 
     /**
      * Method to fetch profiles from the database.
-     * Uses FirebaseFirestore to query the "users" collection.
+     * Uses Firebase-Firestore to query the "users" collection.
      */
     private void fetchProfiles() {
         FirebaseFirestore db = FirebaseFirestore.getInstance(); // Get instance of Firestore database

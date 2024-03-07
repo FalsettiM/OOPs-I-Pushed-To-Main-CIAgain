@@ -23,7 +23,7 @@
             android:exported="false" />
         <activity
             android:name=".EventDetailsActivity"
-            android:exported="false"/>
+            android:exported="false" />
         <activity
             android:name=".AdminActivity"
             android:exported="false" />
