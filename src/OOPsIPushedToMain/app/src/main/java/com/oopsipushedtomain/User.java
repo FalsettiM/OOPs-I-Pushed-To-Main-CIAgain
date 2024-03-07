@@ -147,6 +147,94 @@ public class User {
         });
     }
 
+    /**
+     * Updates the data in firebase with the data currently in the object
+     */
+    public void UpdateFirebaseData() {
+        // Create a hash map for all variables
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("address", address);
+        data.put("birthday", birthday);
+        data.put("email", email);
+        data.put("homepage", homepage);
+        data.put("name", name);
+        data.put("nickname", nickname);
+        data.put("phone", phone);
+
+
+        // Set all parameters
+        userDocRef.set(data);
+    }
+
+    public void setAddress(String address) {
+        // Update in the class
+        this.address = address;
+
+        // Update in database
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("address", this.address);
+        userDocRef.update(data);
+    }
+
+    public void setBirthday(Date birthday) {
+        // Update in the class
+        this.birthday = birthday;
+
+        // Update in database
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("birthday", this.birthday);
+        userDocRef.update(data);
+    }
+
+    public void setEmail(String email) {
+        // Update in the class
+        this.email = email;
+
+        // Update in database
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("email", this.email);
+        userDocRef.update(data);
+    }
+
+    public void setHomepage(String homepage) {
+        // Update in the class
+        this.homepage = homepage;
+
+        // Update in database
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("homepage", this.homepage);
+        userDocRef.update(data);
+    }
+
+    public void setName(String name) {
+        // Update in the class
+        this.name = name;
+
+        // Update in database
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("name", this.name);
+        userDocRef.update(data);
+    }
+
+    public void setNickname(String nickname) {
+        // Update in the class
+        this.nickname = nickname;
+
+        // Update in database
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("nickname", this.nickname);
+        userDocRef.update(data);
+    }
+
+    public void setPhone(String phone) {
+        // Update in the class
+        this.phone = phone;
+
+        // Update in database
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("phone", this.phone);
+        userDocRef.update(data);
+    }
 
     public String getUid() {
         this.UpdateAllDataFields();
@@ -189,7 +277,8 @@ public class User {
     }
 
     /**
-     * Checks a user into the specified event
+     * Checks a user into the specified event.
+     * It will create a new entry if it does not exist already
      * @param eventID The UID of the event
      */
     public void checkIn(String eventID) {

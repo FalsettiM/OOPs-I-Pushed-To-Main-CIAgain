@@ -7,6 +7,8 @@ import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.util.Date;
+
 public class MainActivity extends AppCompatActivity {
 
     @Override
@@ -30,7 +32,13 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 // Create a new user
                 User user = new User("USER-XCEPMX3WF3TWJRN8IQG2");
-                user.checkIn("Yo");
+                user.setEmail("Email");
+                user.setAddress("Address");
+                user.setName("Name");
+                user.setBirthday(new Date());
+                user.setPhone("000000");
+                user.setNickname("Nick");
+                user.setHomepage("Ual");
             }
         });
 
