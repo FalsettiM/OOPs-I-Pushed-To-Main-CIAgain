@@ -129,6 +129,7 @@ public class AttendeeProfileActivity extends AppCompatActivity implements EditFi
                 update.put("nickname", fieldValue);
                 break;
             case "Birthday":
+                // TODO: Implement format for birthday field
                 birthdayValue.setText(fieldValue); // Corrected to update birthdayTextView
                 update.put("birthday", fieldValue);
                 break;
@@ -141,6 +142,7 @@ public class AttendeeProfileActivity extends AppCompatActivity implements EditFi
                 update.put("address", fieldValue);
                 break;
             case "Phone Number":
+                // TODO: Implement format for phone number field
                 phoneNumberValue.setText(fieldValue); // Corrected to update phoneNumberTextView
                 update.put("phone", fieldValue);
                 break;
@@ -152,7 +154,7 @@ public class AttendeeProfileActivity extends AppCompatActivity implements EditFi
 
         // Update Firestore
         if (!update.isEmpty()) {
-            db.collection("Users").document(userId)
+            db.collection("users").document(userId)
                     .update(update)
                     .addOnSuccessListener(aVoid -> Log.d("Firestore", "DocumentSnapshot successfully updated!"))
                     .addOnFailureListener(e -> Log.w("Firestore", "Error updating document", e));

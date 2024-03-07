@@ -170,6 +170,9 @@ public class EventDetailsActivity extends AppCompatActivity {
                     Intent intent = new Intent(EventDetailsActivity.this, EventListActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK); // Clears the back stack
                     startActivity(intent);
+
+                    // Can also just use "finish()". Goes back to the previous activity and closes this one
+
                 })
                 .addOnFailureListener(e -> Toast.makeText(EventDetailsActivity.this, "Error deleting event", Toast.LENGTH_SHORT).show());
     }
