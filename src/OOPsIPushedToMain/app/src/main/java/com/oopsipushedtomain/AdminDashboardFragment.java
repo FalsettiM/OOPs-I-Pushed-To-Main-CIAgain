@@ -1,5 +1,6 @@
 package com.oopsipushedtomain;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,12 +28,10 @@ public class AdminDashboardFragment extends Fragment {
         btnBrowseEvents.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // Intent intent = new Intent(getActivity(), ListEventsActivity.class);
+                 Intent intent = new Intent(getActivity(), EventListActivity.class);
+                 intent.putExtra("isAdmin", true);
 
-                // Send flag that admin is accessing
-                // intent.putExtra("isAdmin", true);
-
-                // startActivity(intent);
+                 startActivity(intent);
             }
 
 
@@ -48,12 +47,11 @@ public class AdminDashboardFragment extends Fragment {
         btnBrowseProfiles.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //Intent intent = new Intent(getActivity(), ListProfilesActivity.class);
+                Intent intent = new Intent(getActivity(), ProfileListActivity.class);
 
-                // Send flag that admin is accessing
-                // intent.putExtra("isAdmin", true);
+                intent.putExtra("isAdmin", true);
 
-                //startActivity(intent);
+                startActivity(intent);
             }
         });
 
