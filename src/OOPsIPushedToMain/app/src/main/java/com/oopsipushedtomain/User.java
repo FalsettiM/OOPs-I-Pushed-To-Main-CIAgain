@@ -7,23 +7,25 @@ import androidx.annotation.NonNull;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
-import com.google.firebase.firestore.AggregateQuery;
-import com.google.firebase.firestore.AggregateQuerySnapshot;
-import com.google.firebase.firestore.AggregateSource;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
-import com.google.firebase.firestore.Query;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Queue;
 
+/**
+ * This class defines and represents a user
+ * @author Matteo Falsetti
+ * @version 1.0
+ * @see Event
+ * @see ProfileActivity
+ */
 public class User {
 
     // User parameters
@@ -50,6 +52,7 @@ public class User {
         db = FirebaseFirestore.getInstance();
         userRef = db.collection("users");
     }
+
 
     /**
      * Generates a new user and uploads them to the database
@@ -147,25 +150,11 @@ public class User {
         });
     }
 
+
     /**
-     * Updates the data in firebase with the data currently in the object
+     * Updates the user's address
+     * @param address The address of the user
      */
-    public void UpdateFirebaseData() {
-        // Create a hash map for all variables
-        HashMap<String, Object> data = new HashMap<>();
-        data.put("address", address);
-        data.put("birthday", birthday);
-        data.put("email", email);
-        data.put("homepage", homepage);
-        data.put("name", name);
-        data.put("nickname", nickname);
-        data.put("phone", phone);
-
-
-        // Set all parameters
-        userDocRef.set(data);
-    }
-
     public void setAddress(String address) {
         // Update in the class
         this.address = address;
@@ -176,6 +165,10 @@ public class User {
         userDocRef.update(data);
     }
 
+    /**
+     * Updates the user's birthday
+     * @param birthday The birthday of the user
+     */
     public void setBirthday(Date birthday) {
         // Update in the class
         this.birthday = birthday;
@@ -186,6 +179,10 @@ public class User {
         userDocRef.update(data);
     }
 
+    /**
+     * Updates the user's email
+     * @param email The email of the user
+     */
     public void setEmail(String email) {
         // Update in the class
         this.email = email;
@@ -196,6 +193,10 @@ public class User {
         userDocRef.update(data);
     }
 
+    /**
+     * Updates the user's homepage
+     * @param homepage the homepage of the user
+     */
     public void setHomepage(String homepage) {
         // Update in the class
         this.homepage = homepage;
@@ -206,6 +207,10 @@ public class User {
         userDocRef.update(data);
     }
 
+    /**
+     * Updates the user's name
+     * @param name The name of the user
+     */
     public void setName(String name) {
         // Update in the class
         this.name = name;
@@ -216,6 +221,10 @@ public class User {
         userDocRef.update(data);
     }
 
+    /**
+     * Updates the user's nickname
+     * @param nickname The nickname of the user
+     */
     public void setNickname(String nickname) {
         // Update in the class
         this.nickname = nickname;
@@ -226,6 +235,10 @@ public class User {
         userDocRef.update(data);
     }
 
+    /**
+     * Updates the user's phone number
+     * @param phone The phone number of the user
+     */
     public void setPhone(String phone) {
         // Update in the class
         this.phone = phone;
@@ -236,41 +249,73 @@ public class User {
         userDocRef.update(data);
     }
 
+    /**
+     * Gets the UID for the user
+     * @return The UID of the user
+     */
     public String getUid() {
         this.UpdateAllDataFields();
         return uid;
     }
 
+    /**
+     * Gets the address of the user
+     * @return The address of the user
+     */
     public String getAddress() {
         this.UpdateAllDataFields();
         return address;
     }
 
+    /**
+     * Gets the birthday of the user
+     * @return The birthday of the user
+     */
     public Date getBirthday() {
         this.UpdateAllDataFields();
         return birthday;
     }
 
+    /**
+     * Gets the email of the user
+     * @return The email of the user
+     */
     public String getEmail() {
         this.UpdateAllDataFields();
         return email;
     }
 
+    /**
+     * Gets the homepage of the user
+     * @return The homepage of the user
+     */
     public String getHomepage() {
         this.UpdateAllDataFields();
         return homepage;
     }
 
+    /**
+     * Gets the name of the user
+     * @return The name of the user
+     */
     public String getName() {
         this.UpdateAllDataFields();
         return name;
     }
 
+    /**
+     * Gets the nickname of the user
+     * @return The nickname of the user
+     */
     public String getNickname() {
         this.UpdateAllDataFields();
         return nickname;
     }
 
+    /**
+     * Gets the phone number of the user
+     * @return The phone number of the user
+     */
     public String getPhone() {
         this.UpdateAllDataFields();
         return phone;
