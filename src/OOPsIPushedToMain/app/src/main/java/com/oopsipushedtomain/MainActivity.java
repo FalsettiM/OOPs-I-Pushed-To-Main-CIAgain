@@ -15,12 +15,22 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         Button button = findViewById(R.id.hello_button);
+        Button userButton = findViewById(R.id.user_test);
 
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
                 startActivity(intent);
+            }
+        });
+
+        userButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Create a new user
+                User user = new User("USER-XCEPMX3WF3TWJRN8IQG2");
+                user.checkIn("Yo");
             }
         });
 
