@@ -1,5 +1,6 @@
 package com.oopsipushedtomain;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -226,5 +227,12 @@ public class AttendeeProfileActivity extends AppCompatActivity implements EditFi
         addressValue.setOnClickListener(v -> showEditFieldDialog("Address", addressValue.getText().toString()));
         phoneNumberValue.setOnClickListener(v -> showEditFieldDialog("Phone Number", phoneNumberValue.getText().toString()));
         emailValue.setOnClickListener(v -> showEditFieldDialog("Email", emailValue.getText().toString()));
+        eventsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(AttendeeProfileActivity.this, EventListActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 }
