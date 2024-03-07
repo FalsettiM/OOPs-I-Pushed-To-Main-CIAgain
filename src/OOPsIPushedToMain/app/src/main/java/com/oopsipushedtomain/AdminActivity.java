@@ -1,16 +1,14 @@
 package com.oopsipushedtomain;
 
 import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.FragmentTransaction;
 
+/**
+ * AdminActivity is the entry point for administrators.
+ * It hosts the AdminDashboardFragment to provide administrative functionalities.
+ */
 public class AdminActivity extends AppCompatActivity {
 
     @Override
@@ -18,6 +16,7 @@ public class AdminActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin);
 
+        // Replace placeholder fragment container with AdminDashboardFragment
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.fragment_container, new AdminDashboardFragment())

@@ -12,6 +12,10 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+/**
+ * AdminDashboardFragment represents the dashboard for administrators.
+ * It provides functionality for browsing events, profiles, and images.
+ */
 public class AdminDashboardFragment extends Fragment {
 
     @Nullable
@@ -25,46 +29,38 @@ public class AdminDashboardFragment extends Fragment {
         Button btnBrowseImages = view.findViewById(R.id.btnBrowseImages);
 
         // Set up button click listeners
+
+        // Click listener for browsing events
         btnBrowseEvents.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                 Intent intent = new Intent(getActivity(), EventListActivity.class);
-                 intent.putExtra("isAdmin", true);
-
-                 startActivity(intent);
-            }
-
-
-            //Sample receive code
-            // Retrieve the data passed through the intent
-            //    boolean isAdmin = getIntent().getBooleanExtra("isAdmin", false);
-            //
-            //    if (isAdmin) {
-            //        // Customize the UI or functionality for the admin
-            //    }
-        });
-
-        btnBrowseProfiles.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(getActivity(), ProfileListActivity.class);
-
+                // Start EventListActivity to browse events
+                Intent intent = new Intent(getActivity(), EventListActivity.class);
                 intent.putExtra("isAdmin", true);
-
                 startActivity(intent);
             }
         });
 
+        // Click listener for browsing profiles
+        btnBrowseProfiles.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Start ProfileListActivity to browse profiles
+                Intent intent = new Intent(getActivity(), ProfileListActivity.class);
+                intent.putExtra("isAdmin", true);
+                startActivity(intent);
+            }
+        });
+
+        // Click listener for browsing images
         btnBrowseImages.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                // Navigate to list of images
+                // Navigate to list of images using ImageSelectionFragment
                 FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
                 transaction.replace(R.id.fragment_container, new ImageSelectionFragment());
                 transaction.addToBackStack(null);
                 transaction.commit();
-
             }
         });
 
