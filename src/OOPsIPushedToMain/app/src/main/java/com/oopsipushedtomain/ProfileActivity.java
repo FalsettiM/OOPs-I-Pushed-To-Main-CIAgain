@@ -18,7 +18,6 @@ import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.DocumentReference;
-import com.oopsipushedtomain.EditFieldDialogFragment;
 
 
 import java.text.SimpleDateFormat;
@@ -31,7 +30,7 @@ import java.util.Map;
  * Activity for displaying and editing an attendee's profile.
  * This class allows for interaction with Firebase Firestore to retrieve and update user data.
  */
-public class AttendeeProfileActivity extends AppCompatActivity implements EditFieldDialogFragment.EditFieldDialogListener {
+public class ProfileActivity extends AppCompatActivity implements EditFieldDialogFragment.EditFieldDialogListener {
 
     // Declare UI elements for labels and values
     private TextView nameLabel, nicknameLabel, birthdayLabel, homepageLabel, addressLabel, phoneNumberLabel, emailLabel;
@@ -51,7 +50,7 @@ public class AttendeeProfileActivity extends AppCompatActivity implements EditFi
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_attendee_profile);
+        setContentView(R.layout.activity_profile);
 
         // Initialize Firestore
         db = FirebaseFirestore.getInstance();
@@ -232,7 +231,7 @@ public class AttendeeProfileActivity extends AppCompatActivity implements EditFi
         eventsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(AttendeeProfileActivity.this, EventListActivity.class);
+                Intent intent = new Intent(ProfileActivity.this, EventListActivity.class);
                 startActivity(intent);
             }
         });
