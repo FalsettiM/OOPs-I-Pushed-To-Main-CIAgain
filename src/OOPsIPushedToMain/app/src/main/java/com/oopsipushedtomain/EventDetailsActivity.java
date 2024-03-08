@@ -56,6 +56,8 @@ public class EventDetailsActivity extends AppCompatActivity {
 
     private String currentUserUID;
 
+    private String eventID;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,7 +89,10 @@ public class EventDetailsActivity extends AppCompatActivity {
             eventStartTimeEdit.setText(event.getStartTime());
             eventEndTimeEdit.setText(event.getEndTime());
             eventDescriptionEdit.setText(event.getDescription());
+
             determineUserRole(currentUserUID, event.getEventId(), this::updateUIForRole);
+
+            eventID = event.getEventId();
         }
 
 
