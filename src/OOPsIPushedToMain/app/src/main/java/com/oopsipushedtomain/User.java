@@ -415,6 +415,10 @@ public class User {
      * @param profileImage The image to store as a bitmap
      */
     public void setProfileImage(Bitmap profileImage) {
+        if (imageUID == null || imageUID.isEmpty()) {
+            Log.e("Firebase Storage", "Invalid imageUID, cannot upload image.");
+            return;
+        }
         // Convert the bitmap to PNG for upload
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         profileImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
@@ -427,9 +431,27 @@ public class User {
         }).addOnFailureListener(exception -> {
             Log.d("Firebase Storage", "Image upload failed");
         });
-
     }
+    // ChatGPT: How can you delete an image to firebase storage?
+    /**
+     * Deletes the user's profile image in the database
+     *
+     */
+    public void deleteProfileImage() {
+        // Check if there is an image to delete
+        if (imageUID == null || imageUID.isEmpty()) {
+            Log.d("Firebase Storage", "No image to delete.");
+            return;
+        }
 
+        // Delete the image from Firebase Storage
+        StorageReference fileRef = storageRef.child(imageUID);
+        fileRef.delete().addOnSuccessListener(aVoid -> {
+            Log.d("Firebase Storage", "Image successfully deleted");
+        }).addOnFailureListener(e -> {
+            Log.d("Firebase Storage", "Error deleting image", e);
+        });
+    }
     /**
      * Gets the UID for the user
      *
@@ -511,6 +533,16 @@ public class User {
     }
 
     /**
+     * Gets the image string of the user
+     *
+     * @return The image string of the user
+     */
+    public String getImageUID() {
+        return imageUID;
+    }
+
+
+    /**
      * Gets the FID of the user
      *
      * @return The FID of the user
@@ -519,6 +551,7 @@ public class User {
 //        this.UpdateAllDataFields();
         return fid;
     }
+
 
     // ChatGPT: Now i want to do the reverse and load the image and convert it back to a bitmap
     public void getProfileImage(OnBitmapReceivedListener listener) {
