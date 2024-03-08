@@ -1,8 +1,12 @@
 package com.oopsipushedtomain;
 
+import androidx.test.espresso.intent.Intents;
+import androidx.test.espresso.intent.matcher.IntentMatchers;
 import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.espresso.Espresso;
+import static androidx.test.espresso.intent.Intents.intended;
+
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -15,6 +19,10 @@ import static androidx.test.espresso.action.ViewActions.typeText;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
+
+
+import android.content.Intent;
+import android.provider.MediaStore;
 
 @RunWith(AndroidJUnit4.class)
 public class ProfileActivityTest {
@@ -93,4 +101,25 @@ public class ProfileActivityTest {
         onView(withText("Save")).perform(click());
         onView(withId(R.id.emailValueTextView)).check(matches(withText("newemail@example.com")));
     }
+    // Testing for camera and gallery functionality to allow a user to take or upload a picture
+    @Rule
+//    public ActivityScenarioRule<ProfileActivity> activityRule =
+//            new ActivityScenarioRule<>(ProfileActivity.class);
+
+    @Test
+    public void testCameraIntentIsLaunched() {
+        Intents.init();
+        onView(withId(R.id.profileImageView)).perform(click());
+        intended(IntentMatchers.hasAction(MediaStore.ACTION_IMAGE_CAPTURE));
+        Intents.release();
+    }
+
+    @Test
+    public void testGalleryIntentIsLaunched() {
+        Intents.init();
+        onView(withId(R.id.profileImageView)).perform(click());
+        intended(IntentMatchers.hasAction(Intent.ACTION_PICK));
+        Intents.release();
+    }
+
 }
