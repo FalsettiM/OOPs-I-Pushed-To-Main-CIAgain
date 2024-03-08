@@ -30,7 +30,7 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
                 android:scaleType="centerCrop"
-                android:src="@drawable/default_image"
+                android:src="@mipmap/ic_launcher"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:shapeAppearanceOverlay="@style/CircularShape" />
@@ -41,7 +41,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:hint="Enter your name"
+                android:text="Tester Name"
                 android:textAppearance="@style/TextAppearance.AppCompat.Large"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@id/profileImageView"
@@ -52,7 +52,7 @@
                 android:id="@+id/nicknameTextView"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:hint="Enter your nickname"
+                android:text="J man"
                 app:layout_constraintStart_toStartOf="@id/nameTextView"
                 app:layout_constraintTop_toBottomOf="@id/nameTextView" />
 
@@ -72,7 +72,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:hint="YYYY-MM-DD"
+                android:text="Not Set"
                 app:layout_constraintBottom_toBottomOf="@id/birthdayLabelTextView"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@id/birthdayLabelTextView"
@@ -92,7 +92,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:hint="https://yourwebsitehere.com"
+                android:text="cmput301.com"
                 app:layout_constraintBottom_toBottomOf="@id/homepageLabelTextView"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/homepageLabelTextView"
@@ -114,7 +114,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:hint="123 App Street"
+                android:text="123 App Street, Android City"
                 app:layout_constraintBottom_toBottomOf="@+id/addressLabelTextView"
                 app:layout_constraintStart_toEndOf="@+id/addressLabelTextView" />
 
@@ -133,7 +133,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:hint="7801234567"
+                android:text="+1234567890"
                 app:layout_constraintStart_toEndOf="@id/phoneNumberLabelTextView"
                 app:layout_constraintTop_toTopOf="@+id/phoneNumberLabelTextView"
                 tools:layout_constraintTop_toTopOf="@id/phoneNumberLabelTextView" />
@@ -151,19 +151,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:hint="justin@example.com"
+                android:text="justin@example.com"
                 app:layout_constraintStart_toEndOf="@+id/emailLabelTextView"
                 app:layout_constraintTop_toTopOf="@+id/emailLabelTextView" />
-
-            <Button
-                android:id="@+id/notificationsButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="Notifications"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/emailLabelTextView" />
 
             <Button
                 android:id="@+id/eventsButton"
@@ -171,19 +161,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="Events"
-                app:layout_constraintEnd_toEndOf="@id/notificationsButton"
-                app:layout_constraintStart_toStartOf="@id/notificationsButton"
-                app:layout_constraintTop_toBottomOf="@id/notificationsButton" />
-
-            <Button
-                android:id="@+id/announcementsButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Announcements"
-                app:layout_constraintEnd_toEndOf="@id/eventsButton"
-                app:layout_constraintStart_toStartOf="@id/eventsButton"
-                app:layout_constraintTop_toBottomOf="@id/eventsButton" />
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/emailLabelTextView" />
 
             <Button
                 android:id="@+id/scanQRCodeButton"
@@ -191,9 +171,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="Scan QR Code for Check-In"
-                app:layout_constraintEnd_toEndOf="@id/announcementsButton"
-                app:layout_constraintStart_toStartOf="@id/announcementsButton"
-                app:layout_constraintTop_toBottomOf="@id/announcementsButton" />
+                app:layout_constraintEnd_toEndOf="@id/eventsButton"
+                app:layout_constraintStart_toStartOf="@id/eventsButton"
+                app:layout_constraintTop_toBottomOf="@id/eventsButton" />
 
             <Button
                 android:id="@+id/adminButton"
