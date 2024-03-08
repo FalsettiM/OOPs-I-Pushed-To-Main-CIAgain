@@ -73,36 +73,91 @@ import java.util.concurrent.Executors;
  */
 public class User {
     // User parameters
+    /**
+     * The UID of the user
+     */
     private String uid;
+    /**
+     * The address of the user
+     * It says hi when you create a new account
+     */
     private String address = "Hello";
+    /**
+     * The birthday of the user
+     */
     private Date birthday = null;
+    /**
+     * The email of the user
+     */
     private String email = null;
+    /**
+     * The homepage of the user
+     */
     private String homepage = null;
+    /**
+     * The full name of the user
+     */
     private String name = null;
+    /**
+     * The nickname of the user
+     */
     private String nickname = null;
+    /**
+     * The phone number of the user
+     */
     private String phone = null;
 
+    /**
+     * The UID of the user's profile picture
+     */
     private String imageUID = null;
+    /**
+     * The Firebase Installation ID (fid)
+     */
     private String fid = null;
 
     // Announcements
+    /**
+     * The array list to store annoncements for this user
+     */
     private ArrayList<String> announcementsList;
 
     // Database parameters
+    /**
+     * A reference to the Firestore database
+     */
     private FirebaseFirestore db;
+    /**
+     * A reference to the users collection
+     */
     private CollectionReference userRef;
+    /**
+     * A reference to the doucment for this user
+     */
     private DocumentReference userDocRef;
+    /**
+     * A reference to the events collection for each user
+     */
     private CollectionReference userEventRef;
 
 
     // Firebase storage
+    /**
+     * A reference to Firebase Storage
+     */
     private FirebaseStorage storage;
+    /**
+     * A reference to the storage pool for images
+     */
     private StorageReference storageRef;
 
     /**
      * Interface for checking when data is loaded into the user
      */
     public interface DataLoadedListener {
+        /**
+         * Call back for when data is loaded into the user
+         */
         void onDataLoaded();
     }
 
@@ -110,6 +165,10 @@ public class User {
      * Interface for checking when a new user is created
      */
     public interface UserCreatedListener {
+        /**
+         * Callback for passing back the created user when creating a new user
+         * @param user The new user that was created
+         */
         void onDataLoaded(User user);
     }
 
@@ -117,6 +176,10 @@ public class User {
      * Interface for checking when the image is loaded from the database
      */
     public interface OnBitmapReceivedListener {
+        /**
+         * Callback for passing back the user's profile picture when it was received
+         * @param bitmap The received bitmap
+         */
         void onBitmapReceived(Bitmap bitmap);
     }
 
@@ -561,6 +624,12 @@ public class User {
 
 
     // ChatGPT: Now i want to do the reverse and load the image and convert it back to a bitmap
+
+    /**
+     * Gets the users profile image from the database.
+     * The Bitmap profile image is passed out through the listener
+     * @param listener The listener to to see when data transfer is finished
+     */
     public void getProfileImage(OnBitmapReceivedListener listener) {
         if (imageUID == null || imageUID.isEmpty()) {
             Log.d("User", "No imageUID available for user: " + uid);

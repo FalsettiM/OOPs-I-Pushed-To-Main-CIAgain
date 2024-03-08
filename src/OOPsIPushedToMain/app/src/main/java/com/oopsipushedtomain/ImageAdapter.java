@@ -20,10 +20,19 @@ import java.util.List;
  */
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> {
     // List holding the image information objects.
+    /**
+     * The list to store the info for each image
+     */
     private List<ImageInfo> imageInfos;
     // Context in which the adapter is operating.
+    /**
+     * The context the adapter was called from
+     */
     private Context context;
     // Listener for handling click events on items.
+    /**
+     * The click listener for the item in the list
+     */
     private OnItemClickListener listener;
 
     /**
@@ -93,6 +102,9 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
      */
     public static class ViewHolder extends RecyclerView.ViewHolder {
         // ImageView for displaying the image.
+        /**
+         * The view for the image
+         */
         ImageView imageView;
 
         /**

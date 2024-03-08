@@ -37,22 +37,48 @@ import java.util.Map;
  */
 public class QRCode {
     // Storing the string and bitmap of the qrcode
+    /**
+     * The string associated with this QR Code
+     */
     private String qrString;
+    /**
+     * The UID of this QR Code
+     */
     private String qrCodeUID;
 
-
+    /**
+     * The UID of the image associated with this QR code
+     */
     private String imageUID;
 
+    /**
+     * The Bitmap image of this QR code
+     */
     private Bitmap qrCodeImage = null;
 
     // Database parameters
+    /**
+     * A reference to the Firestore database
+     */
     private FirebaseFirestore db;
+    /**
+     * A reference to the QR codes collection
+     */
     private CollectionReference qrCodeRef;
+    /**
+     * A reference to the document correspoinding to this qr code
+     */
     private DocumentReference qrCodeDocRef;
 
 
     // Firebase storage
+    /**
+     * A reference to the Firebase Storage
+     */
     private FirebaseStorage storage;
+    /**
+     * A reference to the storage pool for images
+     */
     private StorageReference storageRef;
 
 
@@ -60,6 +86,9 @@ public class QRCode {
      * Interface for checking when data is loaded into the qrcode
      */
     public interface DataLoadedListener {
+        /**
+         * Callback for when data is loaded
+         */
         void onDataLoaded();
     }
 
@@ -67,6 +96,10 @@ public class QRCode {
      * Interface for checking when the image is loaded from the database
      */
     public interface OnBitmapReceivedListener {
+        /**
+         * Call back to pass the received Bitmap back to the calling function
+         * @param bitmap The bitmap to pass
+         */
         void onBitmapReceived(Bitmap bitmap);
     }
 
@@ -74,6 +107,10 @@ public class QRCode {
      * Interface for checking when there is a new code loaded into the class
      */
     public interface NewCodeListener {
+        /**
+         * Callback for when the qr code data is recieved
+         * Now the image can be fetched
+         */
         void onDataInitialized();
     }
 

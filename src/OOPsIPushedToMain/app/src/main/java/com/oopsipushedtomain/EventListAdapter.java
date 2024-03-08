@@ -29,7 +29,14 @@ import java.util.ArrayList;
  */
 
 public class EventListAdapter extends ArrayAdapter<Event> {
+    /**
+     * An array list of events to show
+     */
     private ArrayList<Event> events;
+
+    /**
+     * The context the adapter was called from
+     */
     private Context context;
 
     /**

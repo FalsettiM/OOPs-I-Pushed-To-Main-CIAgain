@@ -31,13 +31,39 @@ import java.util.Map;
  */
 public class SendAnnouncementActivity extends AppCompatActivity {
 
+    /**
+     * The view for the announcement title or body
+     */
     private EditText announcementTitleE, announcementBodyE;
+    /**
+     * The view for the event title
+     */
     private TextView eventTitleE;
+    /**
+     * The button references for the send or cancel button
+     */
     private Button sendAnnouncementButton, cancelButton;
+
+    /**
+     * The event title or id
+     */
     private String eventTitle, eventId;
+    /**
+     * A reference to the Firestore database
+     */
     private FirebaseFirestore db;
+    /**
+     * The reference to the collection for announcement
+     */
     private CollectionReference announcementsRef;
+
+    /**
+     * A reference to the event document for the announcement
+     */
     private DocumentReference eventRef;
+    /**
+     * Tag for logging
+     */
     private final String TAG = "SendAnnouncement";
 
     /**

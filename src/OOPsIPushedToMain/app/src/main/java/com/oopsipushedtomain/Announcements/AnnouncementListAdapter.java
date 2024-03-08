@@ -24,7 +24,14 @@ import java.util.ArrayList;
  * @see     AnnouncementListActivity
  */
 public class AnnouncementListAdapter extends ArrayAdapter<Announcement> {
+    /**
+     * Array list to store the announcement to dhow
+     */
     private final ArrayList<Announcement> announcements;
+
+    /**
+     * The context the adapter is called from
+     */
     private final Context context;
 
     /**

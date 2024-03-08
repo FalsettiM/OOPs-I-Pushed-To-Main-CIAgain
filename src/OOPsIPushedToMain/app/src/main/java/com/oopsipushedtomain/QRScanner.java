@@ -41,7 +41,7 @@ public class QRScanner extends AppCompatActivity {
     // ChatGPT, How do I pass a variable back to the calling activity?, Can you give me the code for registerForActivityResult()
 
     /**
-     * Recieves the result from the scanner and sends it back to the calling activity
+     * Receives the result from the scanner and sends it back to the calling activity
      *
      * @param requestCode The integer request code originally supplied to
      *                    startActivityForResult(), allowing you to identify who this
