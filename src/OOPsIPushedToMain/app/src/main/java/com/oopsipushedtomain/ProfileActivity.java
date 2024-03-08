@@ -1,11 +1,18 @@
 package com.oopsipushedtomain;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -18,6 +25,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.DialogFragment;
 import com.oopsipushedtomain.Announcements.AnnouncementListActivity;
 
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -41,11 +50,59 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
     private TextView nameValue, nicknameValue, birthdayValue, homepageValue, addressValue, phoneNumberValue, emailValue;
     private Button eventsButton, scanQRCodeButton, adminButton;
     private Switch toggleGeolocationSwitch;
+
+    private View profileImageView;
+    private Drawable defaultImage;
+
     private String userId; // Get from bundle
+
 
     // Activity result launcher for getting the result of the QRCodeScan
     private ActivityResultLauncher<Intent> qrCodeActivityResultLauncher;
 
+    private final ActivityResultLauncher<Intent> cameraResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                Log.d("ProfileActivity", "ActivityResult received");
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                    Bitmap photo = (Bitmap) result.getData().getExtras().get("data");
+                    ((ImageView)profileImageView).setImageBitmap(photo);
+                    // Upload the image to storage
+                    // TODO: un-hardcode userID
+                    user = new User("USER-9DRH1BAQZQMGZJEZFMGL", new User.DataLoadedListener() {
+                        @Override
+                        public void onDataLoaded() {
+                            user.setProfileImage(photo);
+                        }
+                    });
+                }
+            }
+    );
+
+    private final ActivityResultLauncher<String> galleryResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.GetContent(),
+            result -> {
+                if (result != null) {
+                    // Handle the selected image URI
+                    InputStream inputStream = null;
+                    try {
+                        inputStream = getContentResolver().openInputStream(result);
+                    } catch (FileNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
+                    Bitmap picture = BitmapFactory.decodeStream(inputStream);
+                    ((ImageView) profileImageView).setImageURI(result);
+                    // Upload the image to storage
+                    // TODO: un-hardcode userID
+                    user = new User("USER-9DRH1BAQZQMGZJEZFMGL", new User.DataLoadedListener() {
+                        @Override
+                        public void onDataLoaded() {
+                            user.setProfileImage(picture);
+                        }
+                    });
+                }
+            }
+    );
 
     /**
      * Initializes the activity and sets up the UI elements
@@ -74,6 +131,61 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
 
         // Setup listeners for interactive elements
         setupListeners();
+
+        // Set-up ImageView and set on-click listener
+        profileImageView = findViewById(R.id.profileImageView);
+        defaultImage = ((ImageView) profileImageView).getDrawable();
+        profileImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Drawable currentImage = ((ImageView) profileImageView).getDrawable();
+                if (currentImage.equals(defaultImage)) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(ProfileActivity.this);
+                    builder.setTitle("Update Profile Image");
+                    builder.setItems(new CharSequence[]{"Take Photo", "Choose from Gallery"},
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    switch (which) {
+                                        case 0: // Take Photo
+                                            Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                                            cameraResultLauncher.launch(cameraIntent);
+                                            break;
+                                        case 1: // Choose from Gallery
+                                            galleryResultLauncher.launch("image/*");
+                                            break;
+                                    }
+                                }
+                            });
+                    builder.show();
+                } else {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(ProfileActivity.this);
+                    builder.setTitle("Update Profile Image");
+                    builder.setItems(new CharSequence[]{"Take Photo", "Choose from Gallery", "Delete Photo"},
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    switch (which) {
+                                        case 0: // Take Photo
+                                            Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                                            cameraResultLauncher.launch(cameraIntent);
+                                            break;
+                                        case 1: // Choose from Gallery
+                                            galleryResultLauncher.launch("image/*");
+                                            break;
+                                        case 2: // Delete Photo
+                                            if (user != null) {
+                                                user.deleteProfileImage();
+                                                ((ImageView) profileImageView).setImageDrawable(defaultImage);
+                                            }
+                                            break;
+                                    }
+                                }
+                            });
+                    builder.show();
+                }
+            }
+        });
 
         // Qr code activity launcher
         // ChatGPT, How do I pass a variable back to the calling activity?, Can you give me the code for registerForActivityResult()

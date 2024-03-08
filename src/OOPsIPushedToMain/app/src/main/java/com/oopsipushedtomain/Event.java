@@ -1,5 +1,9 @@
 package com.oopsipushedtomain;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Log;
+
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -30,6 +34,8 @@ public class Event implements Serializable {
     private String location; // Optional
     private String posterUrl;
     private int attendeeLimit; // Optional
+
+    private String imageUID = null;
 
     // Database parameters
     private FirebaseFirestore db;
@@ -71,10 +77,16 @@ public class Event implements Serializable {
         this.attendeeLimit = attendeeLimit; // Optional
     }
 
+
+
     /**
      * No-argument constructor so that Event can be deserialized
      */
     public Event() {
+    }
+
+    public interface OnBitmapReceivedListener {
+        void onBitmapReceived(Bitmap bitmap);
     }
 
     private void InitDatabase() {
@@ -93,6 +105,11 @@ public class Event implements Serializable {
         InitDatabase();
         generateQRcodeData();
 
+        // Get the UID for an image
+        imageUID = eventRef.document().getId().toUpperCase();
+        imageUID = "IMGE-" + imageUID;
+
+
         Map<String, Object> event = new HashMap<>();
         event.put("title", title);
         event.put("startTime", startTime);
@@ -101,6 +118,8 @@ public class Event implements Serializable {
         event.put("location", location);
         event.put("posterUrl", posterUrl);
         event.put("attendeeLimit", attendeeLimit);
+        event.put("eventImage", imageUID);
+
 
         db.collection("events").document(eventId).set(event)
                 .addOnSuccessListener(aVoid -> {
@@ -245,4 +264,25 @@ public class Event implements Serializable {
     public void setAttendeeLimit(int attendeeLimit) {
         this.attendeeLimit = attendeeLimit;
     }
+
+    // ChatGPT: Now i want to do the reverse and load the image and convert it back to a bitmap
+    public void getEventImage(OnBitmapReceivedListener listener) {
+        if (imageUID == null || imageUID.isEmpty()) {
+            Log.d("Event", "No imageUID available for event: " + eventId);
+            // Call the listener with a null or default bitmap
+            listener.onBitmapReceived(null); // or pass a default Bitmap
+            return;
+        }
+
+        StorageReference eventImageRef = storageRef.child(imageUID);
+        final long ONE_MEGABYTE = 1024 * 1024;
+        eventImageRef.getBytes(ONE_MEGABYTE).addOnSuccessListener(bytes -> {
+            Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+            listener.onBitmapReceived(bitmap);
+        }).addOnFailureListener(e -> {
+            Log.e("Event", "Failed to load image for event: " + eventId, e);
+            listener.onBitmapReceived(null); // or pass a default Bitmap on failure
+        });
+    }
+
 }
