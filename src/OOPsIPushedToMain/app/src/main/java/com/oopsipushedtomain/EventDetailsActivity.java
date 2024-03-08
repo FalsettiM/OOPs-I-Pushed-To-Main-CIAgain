@@ -49,6 +49,8 @@ public class EventDetailsActivity extends AppCompatActivity {
     private ImageView eventPosterEdit;
     private Button eventSaveButton, sendNotificationButton, viewAnnouncementsButton;
 
+    private String eventID;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,7 +75,7 @@ public class EventDetailsActivity extends AppCompatActivity {
             eventStartTimeEdit.setText(event.getStartTime());
             eventEndTimeEdit.setText(event.getEndTime());
             eventDescriptionEdit.setText(event.getDescription());
-            String eventId = event.getEventId();
+            eventID = event.getEventId();
         }
 
         eventPosterEdit.setOnClickListener(new View.OnClickListener() {
