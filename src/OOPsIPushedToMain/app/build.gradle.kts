@@ -50,6 +50,7 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-storage")
     implementation("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-installations:17.2.0")
 
     //Add the ZXing library for the QR code scanner https://github.com/zxing/zxing
     implementation("com.journeyapps:zxing-android-embedded:4.2.0")
