@@ -70,10 +70,7 @@ public class ProfileListActivity extends AppCompatActivity {
 
                     profile.setHomepage(document.getString("homepage"));
                     profile.setAddress(document.getString("address"));
-
-                    // Convert phone number from Long to String
-                    Long phoneLong = document.getLong("phone");
-                    profile.setPhone(phoneLong != null ? phoneLong.toString() : null);
+                    profile.setPhone(document.getString("phone"));
 
                     profile.setEmail(document.getString("email"));
 

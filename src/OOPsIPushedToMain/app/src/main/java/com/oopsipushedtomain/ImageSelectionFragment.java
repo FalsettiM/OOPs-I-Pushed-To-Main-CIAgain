@@ -1,5 +1,6 @@
 package com.oopsipushedtomain;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -39,14 +40,19 @@ public class ImageSelectionFragment extends Fragment {
         btnEventPictures.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Code to navigate to event pictures. (Currently commented out)
+                Intent intent = new Intent(getActivity(), ImageListActivity.class);
+                intent.putExtra("IMAGES_TYPE", "events");
+                startActivity(intent);
+
             }
         });
 
         btnProfilePictures.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Code to navigate to profile pictures. (Currently commented out)
+                Intent intent = new Intent(getActivity(), ImageListActivity.class);
+                intent.putExtra("IMAGES_TYPE", "profiles");
+                startActivity(intent);
             }
         });
 
