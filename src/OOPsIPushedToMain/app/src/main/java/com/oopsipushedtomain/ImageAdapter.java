@@ -14,22 +14,49 @@ import com.bumptech.glide.Glide;
 
 import java.util.List;
 
+/**
+ * Adapter class for managing a RecyclerView that displays a list of images.
+ * This class is responsible for providing the views that represent each item in the image list.
+ */
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> {
+    // List holding the image information objects.
     private List<ImageInfo> imageInfos;
+    // Context in which the adapter is operating.
     private Context context;
+    // Listener for handling click events on items.
     private OnItemClickListener listener;
 
-    // Interface for click events
+    /**
+     * Interface definition for a callback to be invoked when an item in this adapter has been clicked.
+     */
     public interface OnItemClickListener {
+        /**
+         * Called when an item has been clicked.
+         * @param position The position of the item in the adapter that was clicked.
+         */
         void onItemClick(int position);
     }
 
+    /**
+     * Constructs a new ImageAdapter.
+     *
+     * @param context The current context.
+     * @param imageInfos A list of ImageInfo objects to be displayed.
+     * @param listener A listener to respond to item click events.
+     */
     public ImageAdapter(Context context, List<ImageInfo> imageInfos, OnItemClickListener listener) {
         this.context = context;
         this.imageInfos = imageInfos;
         this.listener = listener;
     }
 
+    /**
+     * Called when RecyclerView needs a new {@link ViewHolder} of the given type to represent an item.
+     *
+     * @param parent The ViewGroup into which the new View will be added after it is bound to an adapter position.
+     * @param viewType The view type of the new View.
+     * @return A new ViewHolder that holds a View of the given view type.
+     */
     @NonNull
     @Override
     public ImageAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -37,25 +64,45 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         return new ViewHolder(view, listener);
     }
 
+    /**
+     * Called by RecyclerView to display the data at the specified position.
+     *
+     * @param holder The ViewHolder which should be updated to represent the contents of the item at the given position in the data set.
+     * @param position The position of the item within the adapter's data set.
+     */
     @Override
     public void onBindViewHolder(@NonNull ImageAdapter.ViewHolder holder, int position) {
         ImageInfo imageInfo = imageInfos.get(position);
-        // For Bitmap:
         holder.imageView.setImageBitmap(imageInfo.getImage());
-        // If you switch to using URLs with Glide, update here accordingly
+        // Note: If switching to use URLs with Glide for image loading, the loading mechanism here needs to be updated accordingly.
     }
 
+    /**
+     * Returns the total number of items in the data set held by the adapter.
+     *
+     * @return The total number of items in this adapter.
+     */
     @Override
     public int getItemCount() {
         return imageInfos.size();
     }
 
+    /**
+     * A ViewHolder describes an item view and metadata about its place within the RecyclerView.
+     */
     public static class ViewHolder extends RecyclerView.ViewHolder {
+        // ImageView for displaying the image.
         ImageView imageView;
 
+        /**
+         * Constructs a new ViewHolder instance.
+         *
+         * @param itemView The view of the RecyclerView item.
+         * @param listener The click listener for this item.
+         */
         public ViewHolder(@NonNull View itemView, OnItemClickListener listener) {
             super(itemView);
-            imageView = itemView.findViewById(R.id.imageView); // Ensure this ID matches in your layout
+            imageView = itemView.findViewById(R.id.imageView); // Ensure this ID matches your layout xml
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
                     int position = getAdapterPosition();
@@ -67,4 +114,3 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         }
     }
 }
-
