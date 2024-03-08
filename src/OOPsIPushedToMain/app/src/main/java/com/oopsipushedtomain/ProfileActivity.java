@@ -49,6 +49,7 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
     private Switch toggleGeolocationSwitch;
     private FirebaseFirestore db;
     private String userId = "USER-0000000000"; // Get from bundle
+    private User user;
 
     private final ActivityResultLauncher<Intent> cameraResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -57,7 +58,14 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
                 if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                     Bitmap photo = (Bitmap) result.getData().getExtras().get("data");
                     ((ImageView)profileImageView).setImageBitmap(photo);
-                    // Upload to Firebase
+                    // Upload the image to storage
+                    // TODO: un-hardcode userID
+                    user = new User("USER-9DRH1BAQZQMGZJEZFMGL", new User.DataLoadedListener() {
+                        @Override
+                        public void onDataLoaded() {
+                            user.setProfileImage(photo);
+                        }
+                    });
                 }
             }
     );
@@ -118,7 +126,7 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
                         String nickname = document.getString("nickname");
                         String homepage = document.getString("homepage");
                         String address = document.getString("address");
-                        String phone = document.getLong("phone").toString();
+                        String phone = document.getString("phone");
                         String email = document.getString("email");
 
                         // Update UI elements
