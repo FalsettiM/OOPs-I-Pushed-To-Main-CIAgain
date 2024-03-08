@@ -109,6 +109,7 @@ public class EventDetailsActivity extends AppCompatActivity {
 
         viewAnnouncementsButton.setOnClickListener(v -> {
             Intent intent = new Intent(EventDetailsActivity.this, AnnouncementListActivity.class);
+            Log.e("adsfhk", event.getEventId());
             intent.putExtra("eventId", event.getEventId());
             startActivity(intent);
         });

@@ -123,8 +123,9 @@ public class EventListActivity extends AppCompatActivity {
                     String startDateTime = document.getString("startDateTime");
                     String endDateTime = document.getString("endDateTime");
                     String details = document.getString("details");
+                    String eventId = document.getId();
                     // Extract other fields as necessary and create a new Event object
-                    Event event = new Event(title, startDateTime, endDateTime, details, "", "", 0);
+                    Event event = new Event(eventId, title, startDateTime, endDateTime, details, "", "", 0);
                     eventDataList.add(event);
                 }
                 eventAdapter.notifyDataSetChanged();

@@ -66,6 +66,16 @@ public class Event implements Serializable {
         this.posterUrl = posterUrl;
         this.attendeeLimit = attendeeLimit; // Optional
     }
+    public Event(String eventId, String title, String startTime, String endTime, String description, String location, String posterUrl, int attendeeLimit) {
+        this.eventId = eventId;
+        this.title = title;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.description = description;
+        this.location = location; // Optional
+        this.posterUrl = posterUrl;
+        this.attendeeLimit = attendeeLimit; // Optional
+    }
 
 
 

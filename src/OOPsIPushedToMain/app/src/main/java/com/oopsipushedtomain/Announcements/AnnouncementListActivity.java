@@ -49,6 +49,7 @@ public class AnnouncementListActivity extends AppCompatActivity {
         // Get intent data
         Intent intent = getIntent();
         eventId = intent.getStringExtra("eventId");
+        Log.d(TAG, eventId);
 
         // Initialize Firestore instance and get the event's announcements
         db = FirebaseFirestore.getInstance();
@@ -74,28 +75,32 @@ public class AnnouncementListActivity extends AppCompatActivity {
                     announcementListAdapter.clear();
 
                     // Iterate over the announcements we found for that event
-                    for (String announcement: announcements) {
-                        Log.d(TAG, announcement);
+                    if (announcements == null) {
+                        Log.d(TAG, "No announcements to show");
+                    } else {
+                        for (String announcement : announcements) {
+                            Log.d(TAG, announcement);
 
-                        // Take the announcement UID and find that announcement in the
-                        // 'announcements' collection
-                        announcementRef = db.collection("announcements").document(announcement);
-                        announcementRef.get().addOnCompleteListener(getAnnouncementTask -> {
-                            if (getAnnouncementTask.isSuccessful()) {
-                                DocumentSnapshot announcementDoc = getAnnouncementTask.getResult();
-                                if (announcementDoc.exists()) {  // The announcement was successfully found
-                                    announcementDataList.add(announcementDoc.toObject(Announcement.class));
-                                    announcementListAdapter.notifyDataSetChanged();
+                            // Take the announcement UID and find that announcement in the
+                            // 'announcements' collection
+                            announcementRef = db.collection("announcements").document(announcement);
+                            announcementRef.get().addOnCompleteListener(getAnnouncementTask -> {
+                                if (getAnnouncementTask.isSuccessful()) {
+                                    DocumentSnapshot announcementDoc = getAnnouncementTask.getResult();
+                                    if (announcementDoc.exists()) {  // The announcement was successfully found
+                                        announcementDataList.add(announcementDoc.toObject(Announcement.class));
+                                        announcementListAdapter.notifyDataSetChanged();
+                                    } else {
+                                        Log.e(TAG,
+                                                String.format("Could not find announcement %s for event %s",
+                                                        announcementDoc, eventId));
+                                    }
                                 } else {
-                                    Log.e(TAG,
-                                            String.format("Could not find announcement %s for event %s",
-                                                    announcementDoc, eventId));
+                                    Log.e(TAG, "Get individual announcement task failed, ",
+                                            getAnnouncementTask.getException());
                                 }
-                            } else {
-                                Log.e(TAG, "Get individual announcement task failed, ",
-                                        getAnnouncementTask.getException());
-                            }
-                        });
+                            });
+                        }
                     }
                 } else {
                     Log.e(TAG, "Could not find event's announcements");
