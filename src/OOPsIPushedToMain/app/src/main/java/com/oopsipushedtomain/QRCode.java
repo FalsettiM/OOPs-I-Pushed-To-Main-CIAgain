@@ -27,8 +27,13 @@ import java.util.Map;
 
 
 /**
- * This class will hold a QR code.
- * It will contain the bitmap image as well as functions to generate and read a code
+ * Represents an QR code within the application.
+ * This class is used to model QR codes, including their details such as string and the UIDs linking them to their image and
+ * what they are linked to, start and end times.
+ *
+ * <p>
+ * Outstanding issues:
+ * - Need to implement a delete function to remove it from the database
  */
 public class QRCode {
     // Storing the string and bitmap of the qrcode

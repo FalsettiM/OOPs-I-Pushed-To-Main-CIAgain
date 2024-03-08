@@ -4,6 +4,9 @@
  */
 package com.oopsipushedtomain;
 
+/**
+ * Represents an profile for the admin page
+ */
 public class Profile {
     private String userId;      // The unique identifier for the user
     private String name;        // The full name of the user

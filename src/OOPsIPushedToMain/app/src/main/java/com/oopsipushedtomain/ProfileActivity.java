@@ -35,7 +35,7 @@ import java.util.Map;
 
 /**
  * Activity for displaying and editing an attendee's profile.
- * This class allows for interaction with Firebase Firestore to retrieve and update user data.
+ * Also sets the on click listeners for the buttons on the profile page
  */
 public class ProfileActivity extends AppCompatActivity implements EditFieldDialogFragment.EditFieldDialogListener {
 
@@ -60,6 +60,7 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
     // Activity result launcher for getting the result of the QRCodeScan
     private ActivityResultLauncher<Intent> qrCodeActivityResultLauncher;
 
+    // Getting the result from the camera
     private final ActivityResultLauncher<Intent> cameraResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -79,6 +80,7 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
             }
     );
 
+    // Getting the result from the photo gallery for image upload
     private final ActivityResultLauncher<String> galleryResultLauncher = registerForActivityResult(
             new ActivityResultContracts.GetContent(),
             result -> {
@@ -267,11 +269,10 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
      * Handles the positive click action from the edit field dialog.
      * Updates the corresponding profile field with the new value entered by the user.
      *
-     * @param dialog
-     * @param fieldName
-     * @param fieldValue
+     * @param dialog The dialog that was clicked on
+     * @param fieldName The field name that was clicked on
+     * @param fieldValue The value of the dialog
      */
-
     @Override
     public void onDialogPositiveClick(DialogFragment dialog, String fieldName, String fieldValue) {
 
@@ -320,7 +321,7 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
     /**
      * Handles the positive click action from the edit field dialog.
      *
-     * @param dialog
+     * @param dialog The dialog that was clicked on
      */
     @Override
     public void onDialogNegativeClick(DialogFragment dialog) {
@@ -330,8 +331,8 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
     /**
      * Shows the edit field dialog for a field on the page using its current value
      *
-     * @param fieldName
-     * @param fieldValue
+     * @param fieldName The field we are editing
+     * @param fieldValue The value of the field
      */
     public void showEditFieldDialog(String fieldName, String fieldValue) {
         DialogFragment dialog = new EditFieldDialogFragment();

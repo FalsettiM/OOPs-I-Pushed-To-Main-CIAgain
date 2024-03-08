@@ -23,7 +23,8 @@ public class ProfileListAdapter extends RecyclerView.Adapter<ProfileListAdapter.
 
     /**
      * Constructor for ProfileListAdapter.
-     * @param context The context of the activity or fragment.
+     *
+     * @param context     The context of the activity or fragment.
      * @param profileList The list of Profile objects to be displayed.
      */
     public ProfileListAdapter(Context context, List<Profile> profileList, OnItemClickListener listener) {
@@ -55,6 +56,14 @@ public class ProfileListAdapter extends RecyclerView.Adapter<ProfileListAdapter.
         }
     }
 
+    /**
+     * Inflates the layout and creates a new ProfileViewHolder
+     *
+     * @param parent   The ViewGroup into which the new View will be added after it is bound to
+     *                 an adapter position.
+     * @param viewType The view type of the new View.
+     * @return
+     */
     @NonNull
     @Override
     public ProfileViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -63,6 +72,13 @@ public class ProfileListAdapter extends RecyclerView.Adapter<ProfileListAdapter.
         return new ProfileViewHolder(itemView);
     }
 
+    /**
+     * When the view is bound, set the text in the view
+     *
+     * @param holder   The ViewHolder which should be updated to represent the contents of the
+     *                 item at the given position in the data set.
+     * @param position The position of the item within the adapter's data set.
+     */
     @Override
     public void onBindViewHolder(@NonNull ProfileViewHolder holder, int position) {
         Profile profile = profileList.get(position);
@@ -70,6 +86,11 @@ public class ProfileListAdapter extends RecyclerView.Adapter<ProfileListAdapter.
         // Set other details to views as needed
     }
 
+    /**
+     * Gets the number of profiles in the list
+     *
+     * @return The number of profiles in the list
+     */
     @Override
     public int getItemCount() {
         return profileList.size(); // Return the size of the profileList

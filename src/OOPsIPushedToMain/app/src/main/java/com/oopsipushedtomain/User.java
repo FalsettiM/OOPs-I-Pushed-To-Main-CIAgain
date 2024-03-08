@@ -61,6 +61,10 @@ import java.util.concurrent.Executors;
 /**
  * This class defines and represents a user
  * It also includes all database accesses for user functions
+ * <p>
+ * Outstanding Issues:
+ * - Need to implement more error checking
+ * - Need to implement a delete function
  *
  * @author Matteo Falsetti
  * @version 1.0
@@ -68,10 +72,6 @@ import java.util.concurrent.Executors;
  * @see ProfileActivity
  */
 public class User {
-
-    boolean dataLoaded = false;
-    CountDownLatch latch;
-
     // User parameters
     private String uid;
     private String address = "Hello";
@@ -134,6 +134,8 @@ public class User {
     /**
      * Generates a new user and uploads them to the database
      * Instantiates all parameters to null. They need to be set later
+     *
+     * @param listener The listener for determining when the transfer is complete
      */
     public User(UserCreatedListener listener) {
         // Initialize the database
@@ -189,9 +191,11 @@ public class User {
     }
 
     /**
-     * Creates an instance of the new user class given a UID
+     * Creates an instance of the new user class given a UID.
+     * Loads the data from the database
      *
-     * @param userID The UID of the user
+     * @param userID   The UID of the user to find in the database
+     * @param listener Listener for checking when file transfer is complete
      */
     public User(String userID, DataLoadedListener listener) {
         // Initialize database
@@ -222,6 +226,8 @@ public class User {
     /**
      * Updates all fields in the class
      * Needs to be called before getting any data
+     *
+     * @param listener Listener for checking when data transfer is complete
      */
     public void UpdateAllDataFields(DataLoadedListener listener) {
         // Get the data in the document
@@ -433,9 +439,9 @@ public class User {
         });
     }
     // ChatGPT: How can you delete an image to firebase storage?
+
     /**
      * Deletes the user's profile image in the database
-     *
      */
     public void deleteProfileImage() {
         // Check if there is an image to delete
@@ -452,6 +458,7 @@ public class User {
             Log.d("Firebase Storage", "Error deleting image", e);
         });
     }
+
     /**
      * Gets the UID for the user
      *
@@ -604,9 +611,7 @@ public class User {
                         String countField = eventID + ".count";
 
                         // Update the count
-                        checkInRef.update(
-                                countField, FieldValue.increment(1)
-                        );
+                        checkInRef.update(countField, FieldValue.increment(1));
 
                     } else {
                         // Event does not already exist, make a new event

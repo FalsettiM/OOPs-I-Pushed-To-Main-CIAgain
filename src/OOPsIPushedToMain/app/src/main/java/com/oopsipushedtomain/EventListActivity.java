@@ -24,12 +24,12 @@ import java.util.ArrayList;
  * EventListActivity is responsible for displaying a list of events to the user.
  * It acts as the entry point for users to view events, and upon selection, provides detailed information
  * about the selected event. This activity supports different actions based on the user's role (attendee or organizer).
- *
+ * <p>
  * Outstanding issues:
  * 1. The user role check is currently hardcoded to always true, which does not reflect the actual user role.
- *    This needs to be replaced with a dynamic check to determine if the user is an attendee or an organizer.
+ * This needs to be replaced with a dynamic check to determine if the user is an attendee or an organizer.
  * 2. The deletion logic in EventDetailsActivityOrganizer does not currently update the event list in this activity.
- *    A mechanism to refresh the event list after an event is deleted needs to be implemented.
+ * A mechanism to refresh the event list after an event is deleted needs to be implemented.
  */
 
 public class EventListActivity extends AppCompatActivity {
@@ -37,6 +37,14 @@ public class EventListActivity extends AppCompatActivity {
     private ListView eventList;
     private ArrayList<Event> eventDataList;
     private ArrayAdapter<Event> eventAdapter;
+
+    /**
+     * Initializes the parameters of the class
+     *
+     * @param savedInstanceState If the activity is being re-initialized after
+     *                           previously being shut down then this Bundle contains the data it most
+     *                           recently supplied in {@link #onSaveInstanceState}.  <b><i>Note: Otherwise it is null.</i></b>
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,6 +55,9 @@ public class EventListActivity extends AppCompatActivity {
         setupListeners();
     }
 
+    /**
+     * Initializes the views in the layout
+     */
     private void initializeViews() {
         eventDataList = new ArrayList<>();
         eventList = findViewById(R.id.EventListView);
@@ -54,6 +65,9 @@ public class EventListActivity extends AppCompatActivity {
         eventList.setAdapter(eventAdapter);
     }
 
+    /**
+     * Sets up click listeners for the buttons on this page
+     */
     private void setupListeners() {
         // Create Event button functionality
         Button createEventButton = findViewById(R.id.create_event_button);
@@ -113,6 +127,9 @@ public class EventListActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Refresh from the database when this activity is shown on the screen
+     */
     @Override
     protected void onResume() {
         super.onResume();

@@ -38,10 +38,9 @@ public class ImageListActivity extends AppCompatActivity {
      * and decides whether to fetch event or profile images based on intent extras.
      *
      * @param savedInstanceState If the activity is being re-initialized after
-     * previously being shut down then this Bundle contains the data it most
-     * recently supplied in onSaveInstanceState(Bundle). Otherwise it is null.
+     *                           previously being shut down then this Bundle contains the data it most
+     *                           recently supplied in onSaveInstanceState(Bundle). Otherwise it is null.
      */
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,12 +50,7 @@ public class ImageListActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new ImageAdapter(this, imageInfos, position -> {
             // Show confirmation dialog
-            new AlertDialog.Builder(this)
-                    .setTitle("Delete Image")
-                    .setMessage("Are you sure you want to delete this image?")
-                    .setPositiveButton("Yes", (dialog, which) -> deleteImage(position))
-                    .setNegativeButton("No", null)
-                    .show();
+            new AlertDialog.Builder(this).setTitle("Delete Image").setMessage("Are you sure you want to delete this image?").setPositiveButton("Yes", (dialog, which) -> deleteImage(position)).setNegativeButton("No", null).show();
         });
         recyclerView.setAdapter(adapter);
 
@@ -75,10 +69,9 @@ public class ImageListActivity extends AppCompatActivity {
     /**
      * Fetches an image from Firebase storage by its path and adds it to the display list.
      *
-     * @param imagePath The storage path of the image to fetch.
+     * @param imagePath  The storage path of the image to fetch.
      * @param documentId The Firestore document ID associated with the image.
      */
-
     private void fetchAndDisplayImage(String imagePath, String documentId) {
         FirebaseStorage storage = FirebaseStorage.getInstance();
         StorageReference storageRef = storage.getReference().child(imagePath);
@@ -99,7 +92,6 @@ public class ImageListActivity extends AppCompatActivity {
      * Fetches all event images from Firestore and displays them.
      * Assumes there's a field named 'eventImage' in the documents under 'events' collection.
      */
-
     private void fetchAllEventsAndDisplayImages() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("events").get().addOnCompleteListener(task -> {
@@ -157,17 +149,14 @@ public class ImageListActivity extends AppCompatActivity {
      *
      * @param position The position of the image in the RecyclerView's adapter to delete.
      */
-
     private void deleteImage(int position) {
         ImageInfo imageInfo = imageInfos.get(position);
         String imagePath = imageInfo.getStoragePath(); // Now dynamically determined
         FirebaseStorage.getInstance().getReference().child(imagePath).delete().addOnSuccessListener(aVoid -> {
             // Optionally, delete or update the Firestore document reference
             if (imageInfo.getFirestoreDocumentId() != null) {
-                FirebaseFirestore.getInstance().collection("yourCollectionName").document(imageInfo.getFirestoreDocumentId())
-                        .delete() // or .update("fieldName", FieldValue.delete())
-                        .addOnSuccessListener(aVoid2 -> Log.d("Delete", "DocumentSnapshot successfully deleted!"))
-                        .addOnFailureListener(e -> Log.w("Delete", "Error deleting document", e));
+                FirebaseFirestore.getInstance().collection("yourCollectionName").document(imageInfo.getFirestoreDocumentId()).delete() // or .update("fieldName", FieldValue.delete())
+                        .addOnSuccessListener(aVoid2 -> Log.d("Delete", "DocumentSnapshot successfully deleted!")).addOnFailureListener(e -> Log.w("Delete", "Error deleting document", e));
             }
             imageInfos.remove(position);
             adapter.notifyDataSetChanged();

@@ -23,11 +23,18 @@ import java.util.Locale;
  * ProfileListActivity is responsible for displaying a list of user profiles retrieved from a database.
  * It utilizes a RecyclerView to display the profiles using ProfileListAdapter.
  */
-public class ProfileListActivity extends AppCompatActivity{
+public class ProfileListActivity extends AppCompatActivity {
     RecyclerView profilesRecyclerView; // RecyclerView to display profiles
     ProfileListAdapter profileAdapter; // Adapter for profiles
     private List<Profile> profileList = new ArrayList<>(); // List to store profiles
 
+    /**
+     * Initializes the parameters of the class
+     *
+     * @param savedInstanceState If the activity is being re-initialized after
+     *                           previously being shut down then this Bundle contains the data it most
+     *                           recently supplied in {@link #onSaveInstanceState}.  <b><i>Note: Otherwise it is null.</i></b>
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,6 +55,11 @@ public class ProfileListActivity extends AppCompatActivity{
 
         fetchProfiles(); // Fetch profiles from Firestore and populate the RecyclerView
     }
+
+    /**
+     * Shows a confirmation dialog for deleting a profile
+     * @param profile The profile selected
+     */
     private void showDeleteConfirmationDialog(Profile profile) {
         new AlertDialog.Builder(this)
                 .setTitle("Delete Profile")
@@ -59,7 +71,11 @@ public class ProfileListActivity extends AppCompatActivity{
                 .show();
     }
 
-    private void deleteProfile (Profile profile){
+    /**
+     * Deletes a profile on the database
+     * @param profile The profile to delete
+     */
+    private void deleteProfile(Profile profile) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         Toast Toast = null;
         db.collection("users").document(profile.getUserId())
@@ -75,10 +91,10 @@ public class ProfileListActivity extends AppCompatActivity{
                 });
     }
 
-        /**
-         * Method to fetch profiles from the database.
-         * Uses Firebase-Firestore to query the "users" collection.
-         */
+    /**
+     * Method to fetch profiles from the database.
+     * Uses Firebase-Firestore to query the "users" collection.
+     */
     private void fetchProfiles() {
         FirebaseFirestore db = FirebaseFirestore.getInstance(); // Get instance of Firestore database
         db.collection("users").get().addOnCompleteListener(task -> {
