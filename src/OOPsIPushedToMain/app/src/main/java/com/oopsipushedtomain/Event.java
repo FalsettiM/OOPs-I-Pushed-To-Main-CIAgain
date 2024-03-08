@@ -66,6 +66,17 @@ public class Event implements Serializable {
         this.posterUrl = posterUrl;
         this.attendeeLimit = attendeeLimit; // Optional
     }
+
+    /**
+     * Constructs a new Event instance, this time with an eventId
+     * @param eventId The unique identifier of the event.
+     * @param startTime The start time of the event.
+     * @param endTime The end time of the event.
+     * @param description A description of the event.
+     * @param location The location of the event.
+     * @param posterUrl The URL to an image for the event.
+     * @param attendeeLimit The maximum number of attendees for the event. Use 0 or a negative number to indicate no limit.
+     */
     public Event(String eventId, String title, String startTime, String endTime, String description, String location, String posterUrl, int attendeeLimit) {
         this.eventId = eventId;
         this.title = title;

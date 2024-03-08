@@ -1,7 +1,6 @@
 package com.oopsipushedtomain;
 
 import android.content.Intent;
-import android.icu.util.TimeUnit;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -12,11 +11,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.installations.FirebaseInstallations;
 
-import java.util.HashMap;
-import java.util.Map;
-
+/**
+ * The first page that the user sees. Checks to see if the current app installation has been run
+ * before (i.e. if the Firebase Installation ID is already associated with a user in the
+ * database), if so then open that user's profile page. If not, create a new user and open
+ * their new profile page.
+ */
 public class MainActivity extends AppCompatActivity {
     Button button;
     private FirebaseFirestore db;
@@ -48,9 +49,6 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Obtain this installation's Firebase Installation ID (unique to each installation).
-     * Query the 'fid' field in the 'users' collection in the database, if this FID already
-     * exists in the database, proceed as usual. If it does not already exist, create a new
-     * 'users' document and store the FID in the 'fid' field.
      */
     private void getUserFID() {
         // Get the FID using the helper function
@@ -63,6 +61,12 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Query the 'fid' field in the 'users' collection in the database, if this FID already
+     * exists in the database, open their profile page. If it does not already exist, create a new
+     * User and open their profile page.
+     * @param fid Firebase Installation ID to search for in the database
+     */
     void findUser(String fid) {
         // Get all documents in 'users' where the 'fid' field is equal to the current FID
         usersRef.whereEqualTo("fid", fid).get().addOnCompleteListener(getUserTask -> {
@@ -112,10 +116,18 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Returns the value of the foundFID flag
+     * @return Boolean value of foundFID flag
+     */
     public Boolean getFoundFID() {
         return foundFID;
     }
 
+    /**
+     * Sets the value of the foundFID flag
+     * @param foundFID Boolean value to set the foundFID flag to
+     */
     public void setFoundFID(Boolean foundFID) {
         this.foundFID = foundFID;
     }

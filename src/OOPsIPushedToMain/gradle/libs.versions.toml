@@ -1,5 +1,6 @@
 [versions]
 agp = "8.3.0"
+espressoCoreVersion = "3.0.1"
 junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
@@ -14,6 +15,7 @@ espressoContrib = "3.5.1"
 glide = "5.0.0-rc01"
 
 [libraries]
+androidx-espresso-core = { module = "androidx.support.test.espresso:espresso-core", version.ref = "espressoCoreVersion" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
