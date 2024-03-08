@@ -28,6 +28,9 @@ import java.util.Random;
  * @see     SendAnnouncementActivity
  */
 public class PushNotificationService extends FirebaseMessagingService {
+    /**
+     * Tag for logging data
+     */
     private final String CHANNEL_ID = "Event Announcements";
 
     /**

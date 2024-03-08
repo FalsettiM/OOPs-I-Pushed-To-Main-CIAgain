@@ -35,11 +35,29 @@ import java.util.Map;
 
 public class NewEventActivity extends AppCompatActivity {
 
+    /**
+     * The view of the event title
+     */
     private EditText newEventTitleEdit;
+    /**
+     * The view of the event start time
+     */
     private EditText newEventStartTimeEdit;
+    /**
+     * The view of the event end time
+     */
     private EditText newEventEndTimeEdit;
+    /**
+     * The view of the event end time
+     */
     private EditText newEventDescriptionEdit;
+    /**
+     * The view of the event poster
+     */
     private ImageView newEventPosterEdit;
+    /**
+     * The reference to the create event button
+     */
     private Button newEventCreateButton;
 
     /**

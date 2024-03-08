@@ -26,11 +26,17 @@ import java.util.List;
  */
 
 public class ImageListActivity extends AppCompatActivity {
-    // RecyclerView to display the list of images.
+    /**
+     * RecyclerView to display the list of images.
+     */
     RecyclerView recyclerView;
-    // Adapter to manage the display and interaction of image items in the RecyclerView.
+    /**
+     * Adapter to manage the display and interaction of image items in the RecyclerView.
+     */
     private ImageAdapter adapter;
-    // List to hold image information objects.
+    /**
+     * List to hold image information objects.
+     */
     private List<ImageInfo> imageInfos = new ArrayList<>();
 
     /**

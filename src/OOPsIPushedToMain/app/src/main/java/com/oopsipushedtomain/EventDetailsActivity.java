@@ -47,15 +47,39 @@ import java.util.Locale;
  */
 public class EventDetailsActivity extends AppCompatActivity {
     // TODO: Change logic to hide buttons depending on user type
+    /**
+     * The view of the event title
+     */
     private EditText eventTitleEdit;
+    /**
+     * The view of the event start time
+     */
     private EditText eventStartTimeEdit;
+    /**
+     * The view of the event end time
+     */
     private EditText eventEndTimeEdit;
+    /**
+     * The view of the event description
+     */
     private EditText eventDescriptionEdit;
+    /**
+     * The view for the event image poster
+     */
     private ImageView eventPosterEdit;
+    /**
+     * The references to the buttons
+     */
     private Button eventSaveButton, sendNotificationButton, viewAnnouncementsButton, signUpButton, viewLimitAttendeeButton, deleteButton, viewEventQRCodeButton;
 
+    /**
+     * The UID of the user
+     */
     private String currentUserUID;
 
+    /**
+     * The UID of the event
+     */
     private String eventID;
 
     /**
@@ -238,6 +262,10 @@ public class EventDetailsActivity extends AppCompatActivity {
         }).addOnFailureListener(e -> Toast.makeText(EventDetailsActivity.this, "Error deleting event", Toast.LENGTH_SHORT).show());
     }
 
+    /**
+     * Signs a user up for an event
+     * @param eventId The id of the event
+     */
     private void signUpForEvent(String eventId) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         DocumentReference eventRef = db.collection("events").document(eventId);
@@ -261,10 +289,22 @@ public class EventDetailsActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * An enum for the user roles
+     * TODO: Need to change to proper parameters
+     */
     public enum UserRole {
         ORGANIZER, ATTENDEE_NOT_SIGNED_UP, ATTENDEE_SIGNED_UP
     }
 
+    /**
+     * Determines the role of the user for the given event
+     * @param userId The UID of the user
+     * @param eventId The UID of the event
+     * @param callback The listener to deal with the result
+     *
+     *  TODO: Move this to the User class
+     */
     public void determineUserRole(String userId, String eventId, final UserRoleCallback callback) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
@@ -287,10 +327,21 @@ public class EventDetailsActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * The interface for determining when data is received
+     */
     public interface UserRoleCallback {
+        /**
+         * Callback for returning the role of the user once it has been found
+         * @param role The role of the user
+         */
         void onRoleDetermined(UserRole role);
     }
 
+    /**
+     * Hides specific buttons depending on the role of the user
+     * @param role The role of the user (user/admin)
+     */
     private void updateUIForRole(UserRole role) {
         switch (role) {
             case ORGANIZER:

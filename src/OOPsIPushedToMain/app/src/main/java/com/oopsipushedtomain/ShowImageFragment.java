@@ -17,6 +17,9 @@ import android.widget.Toast;
  */
 public class ShowImageFragment extends Fragment {
 
+    /**
+     * The image to show as a Bitmap
+     */
     private Bitmap image;
 
     /**

@@ -24,10 +24,26 @@ import com.google.firebase.firestore.FirebaseFirestore;
  * their new profile page.
  */
 public class MainActivity extends AppCompatActivity {
+    /**
+     * The reference to the "Hello World" button
+     */
     Button button;
+    /**
+     *  A reference to the Firestore database
+     */
     private FirebaseFirestore db;
+    /**
+     * A reference to the users collection
+     */
     private CollectionReference usersRef;
+
+    /**
+     * A flag for checking if an fid was found in the database
+     */
     private Boolean foundFID = false;  // Flag used to check if the FID exists in the database
+    /**
+     * The user of the app
+     */
     private User user;
 
     /**

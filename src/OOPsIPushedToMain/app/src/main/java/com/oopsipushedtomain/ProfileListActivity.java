@@ -24,9 +24,18 @@ import java.util.Locale;
  * It utilizes a RecyclerView to display the profiles using ProfileListAdapter.
  */
 public class ProfileListActivity extends AppCompatActivity {
-    RecyclerView profilesRecyclerView; // RecyclerView to display profiles
-    ProfileListAdapter profileAdapter; // Adapter for profiles
-    private List<Profile> profileList = new ArrayList<>(); // List to store profiles
+    /**
+     * RecyclerView to display profiles
+     */
+    RecyclerView profilesRecyclerView;
+    /**
+     * Adapter for profiles
+     */
+    ProfileListAdapter profileAdapter;
+    /**
+     * List to store profiles
+     */
+    private List<Profile> profileList = new ArrayList<>();
 
     /**
      * Initializes the parameters of the class

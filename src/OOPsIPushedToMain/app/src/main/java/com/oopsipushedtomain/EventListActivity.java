@@ -34,8 +34,17 @@ import java.util.ArrayList;
 
 public class EventListActivity extends AppCompatActivity {
 
+    /**
+     * The view to show the list of events
+     */
     private ListView eventList;
+    /**
+     * The array list to store the events
+     */
     private ArrayList<Event> eventDataList;
+    /**
+     * The adapter to show an event
+     */
     private ArrayAdapter<Event> eventAdapter;
 
     /**

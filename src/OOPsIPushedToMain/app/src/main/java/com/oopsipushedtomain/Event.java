@@ -27,27 +27,70 @@ import java.util.Map;
  * Outstanding issues: None known at this time.
  */
 public class Event implements Serializable {
+    /**
+     * The UID of the event
+     */
     private String eventId;
+    /**
+     * The title of the event
+     */
     private String title;
+    /**
+     * The start time of the event
+     */
     private String startTime;
+    /**
+     * The end time of the event
+     */
     private String endTime;
+    /**
+     * The event description
+     */
     private String description;
+    /**
+     * The event location
+     */
     private String location; // Optional
+
+    /**
+     * The UID for the event poster
+     */
     private String posterUrl;
+    /**
+     * The maximum number of attendees that can check into the event
+     */
     private int attendeeLimit; // Optional
 
+    /**
+     * The list of attendees who have signed up
+     */
     private List<String> signedUpAttendees;
 
+    /**
+     * The UID of the event poster image
+     */
     private String imageUID = null;
 
 
     // Database parameters
+    /**
+     * A reference to the Firestore database
+     */
     private FirebaseFirestore db;
+    /**
+     * A reference to the events collection
+     */
     private CollectionReference eventRef;
-    private DocumentReference eventDocRef;
+
 
     // Firebase storage
+    /**
+     * A reference to Firebase Storage where images are stored
+     */
     private FirebaseStorage storage;
+    /**
+     * A reference to the storage pool for images
+     */
     private StorageReference storageRef;
 
     /**
@@ -108,6 +151,10 @@ public class Event implements Serializable {
      * Listener for determining when a bitmap file is received from the database
      */
     public interface OnBitmapReceivedListener {
+        /**
+         * Returns the bitmap to the calling function
+         * @param bitmap The bitmap to return
+         */
         void onBitmapReceived(Bitmap bitmap);
     }
 
@@ -326,6 +373,11 @@ public class Event implements Serializable {
 
 
     // ChatGPT: Now i want to do the reverse and load the image and convert it back to a bitmap
+
+    /**
+     * Gets the event poster from the database
+     * @param listener The listener for determining when the event is complete
+     */
     public void getEventImage(OnBitmapReceivedListener listener) {
         if (imageUID == null || imageUID.isEmpty()) {
             Log.d("Event", "No imageUID available for event: " + eventId);

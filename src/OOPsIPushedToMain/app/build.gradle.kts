@@ -42,11 +42,15 @@ dependencies {
     implementation(libs.firebase.messaging)
     implementation("androidx.navigation:navigation-fragment:2.7.7")
     implementation(libs.glide)
+
+//    implementation(files("/Users/matteofalsetti/Library/Android/sdk/platforms/android-34/android.jar"))
     implementation(libs.fragment.testing)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-
+    androidTestImplementation("androidx.test:core")
+    debugImplementation("androidx.fragment:fragment-testing:1.4.0")
+    androidTestImplementation("androidx.test.espresso:espresso-intents:3.4.0")
 
     // Import the Firebase BoM
     implementation(platform("com.google.firebase:firebase-bom:32.7.3"))
