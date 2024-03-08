@@ -14,23 +14,14 @@ import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.DialogFragment;
-
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.Timestamp;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.DocumentReference;
 import com.oopsipushedtomain.Announcements.AnnouncementListActivity;
 
-
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -39,20 +30,25 @@ import java.util.Map;
  */
 public class ProfileActivity extends AppCompatActivity implements EditFieldDialogFragment.EditFieldDialogListener {
 
+    // Declare the user
+    private User user;
+
+    // Declare a QRCode for scanning
+    private QRCode qrCode;
+
+
     // Declare UI elements for labels and values
-    private TextView nameLabel, nicknameLabel, birthdayLabel, homepageLabel, addressLabel, phoneNumberLabel, emailLabel;
     private TextView nameValue, nicknameValue, birthdayValue, homepageValue, addressValue, phoneNumberValue, emailValue;
-    private Button notificationsButton, eventsButton, announcementsButton, scanQRCodeButton, adminButton;
+    private Button eventsButton, scanQRCodeButton, adminButton;
     private Switch toggleGeolocationSwitch;
-    private FirebaseFirestore db;
     private String userId = "USER-0000000000"; // Get from bundle
 
     // Activity result launcher for getting the result of the QRCodeScan
     private ActivityResultLauncher<Intent> qrCodeActivityResultLauncher;
-    private QRCode qrCode;
+
 
     /**
-     * Initializes the activity, sets up the UI elements, and prepares Firestore interaction
+     * Initializes the activity and sets up the UI elements
      *
      * @param savedInstanceState If the activity is being re-initialized after
      *                           previously being shut down then this Bundle contains the data it most
@@ -63,8 +59,14 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        // Initialize Firestore
-        db = FirebaseFirestore.getInstance();
+        // Load the information about the given user
+        user = new User(userId, new User.DataLoadedListener() {
+            @Override
+            public void onDataLoaded() {
+                // Initialize the UI elements and load attendee data
+                initializeViews();
+            }
+        });
 
         // Initialize UI elements and load attendee data
         initializeViews();
@@ -89,7 +91,7 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
                         // TODO: Check in the user into an event using the UID
 
                         // Show the scanned data
-                        Toast.makeText(getApplicationContext(),qrCodeString, Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), "Checked into event: " + qrCodeString, Toast.LENGTH_LONG).show();
                         Log.d("QR Code", "Checked into event: " + qrCodeString);
 
                     } else {
@@ -102,47 +104,49 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
     }
 
     /**
-     * Gets user data based on user ID and loads data
+     * Updates the user elements on the UI
      */
-    private void loadUserDataFromFirestore() {
-        //db = FirebaseFirestore.getInstance();
-        DocumentReference docRef = db.collection("users").document(userId);
-        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-                    if (document.exists()) {
-                        // Extract fields and update UI
-                        Timestamp birthdayTimestamp = document.getTimestamp("birthday");
-                        Date birthdayDate = birthdayTimestamp.toDate();
-                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-                        String birthday = sdf.format(birthdayDate);
-                        birthdayValue.setText(birthday);
+    private void updateUIElements() {
 
-                        String name = document.getString("name");
-                        String nickname = document.getString("nickname");
-                        String homepage = document.getString("homepage");
-                        String address = document.getString("address");
-                        String phone = document.getString("phone");
-                        String email = document.getString("email");
+        // Get the data from user
+        String name = user.getName();
+        String nickname = user.getNickname();
+        String homepage = user.getHomepage();
+        String address = user.getAddress();
+        String phone = user.getPhone();
+        String email = user.getEmail();
+        Date birthday = user.getBirthday();
 
-                        // Update UI elements
-                        nameValue.setText(name);
-                        nicknameValue.setText(nickname);
-                        birthdayValue.setText(birthday);
-                        homepageValue.setText(homepage);
-                        addressValue.setText(address);
-                        phoneNumberValue.setText(phone);
-                        emailValue.setText(email);
-                    } else {
-                        Log.d("Document", "No such document");
-                    }
-                } else {
-                    Log.d("Document", "get failed with ", task.getException());
-                }
-            }
-        });
+        // Update the fields
+        if (name != null) {
+            nameValue.setText(name);
+        }
+
+        if (nickname != null) {
+            nicknameValue.setText(nickname);
+        }
+
+        if (birthday != null) {
+            // Format the date
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+            birthdayValue.setText(formatter.format(birthday));
+        }
+
+        if (homepage != null) {
+            homepageValue.setText(homepage);
+        }
+
+        if (address != null) {
+            addressValue.setText(address);
+        }
+
+        if (phone != null) {
+            phoneNumberValue.setText(phone);
+        }
+
+        if (email != null) {
+            emailValue.setText(email);
+        }
     }
 
     /**
@@ -153,6 +157,7 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
      * @param fieldName
      * @param fieldValue
      */
+
     @Override
     public void onDialogPositiveClick(DialogFragment dialog, String fieldName, String fieldValue) {
 
@@ -161,42 +166,40 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
         switch (fieldName) {
             case "Name":
                 nameValue.setText(fieldValue);
-                update.put("name", fieldValue);
+                user.setName(fieldValue);
                 break;
             case "Nickname":
                 nicknameValue.setText(fieldValue);
-                update.put("nickname", fieldValue);
+                user.setNickname(fieldValue);
                 break;
             case "Birthday":
-                // TODO: Implement format for birthday field
-                birthdayValue.setText(fieldValue); // Corrected to update birthdayTextView
-                update.put("birthday", fieldValue);
+                birthdayValue.setText(fieldValue);
+
+                // Format the given date, ChatGPT: How do i format a string into date
+                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+                try {
+                    Date birthday = formatter.parse(fieldValue);
+                    user.setBirthday(birthday);
+                } catch (ParseException e) {
+                    Log.d("ProfileActivity", "Date formatting failed");
+                }
                 break;
             case "Homepage":
                 homepageValue.setText(fieldValue); // Corrected to update homepageTextView
-                update.put("homepage", fieldValue);
+                user.setHomepage(fieldValue);
                 break;
             case "Address":
                 addressValue.setText(fieldValue); // Corrected to update addressTextView
-                update.put("address", fieldValue);
+                user.setAddress(fieldValue);
                 break;
             case "Phone Number":
-                // TODO: Implement format for phone number field
                 phoneNumberValue.setText(fieldValue); // Corrected to update phoneNumberTextView
-                update.put("phone", fieldValue);
+                user.setPhone(fieldValue);
                 break;
             case "Email":
                 emailValue.setText(fieldValue); // Corrected to update emailTextView
-                update.put("email", fieldValue);
+                user.setEmail(fieldValue);
                 break;
-        }
-
-        // Update Firestore
-        if (!update.isEmpty()) {
-            db.collection("users").document(userId)
-                    .update(update)
-                    .addOnSuccessListener(aVoid -> Log.d("Firestore", "DocumentSnapshot successfully updated!"))
-                    .addOnFailureListener(e -> Log.w("Firestore", "Error updating document", e));
         }
     }
 
@@ -229,12 +232,6 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
      * Initialize views to connect to layout file
      */
     private void initializeViews() {
-        // Initialize labels (TextViews for field names)
-        birthdayLabel = findViewById(R.id.birthdayLabelTextView);
-        homepageLabel = findViewById(R.id.homepageLabelTextView);
-        addressLabel = findViewById(R.id.addressLabelTextView);
-        phoneNumberLabel = findViewById(R.id.phoneNumberLabelTextView);
-        emailLabel = findViewById(R.id.emailLabelTextView);
 
         // Initialize values (TextViews for field values)
         nameValue = findViewById(R.id.nameTextView);
@@ -246,18 +243,15 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
         emailValue = findViewById(R.id.emailValueTextView);
 
         // Initialize buttons
-        notificationsButton = findViewById(R.id.notificationsButton);
         eventsButton = findViewById(R.id.eventsButton);
-        announcementsButton = findViewById(R.id.announcementsButton);
         scanQRCodeButton = findViewById(R.id.scanQRCodeButton);
-        announcementsButton = findViewById(R.id.announcementsButton);
         adminButton = findViewById(R.id.adminButton);
 
         // Initialize switch
         toggleGeolocationSwitch = findViewById(R.id.toggleGeolocationSwitch);
 
         // Load user data into views
-        loadUserDataFromFirestore();
+        updateUIElements();
     }
 
     /**
@@ -276,14 +270,6 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(ProfileActivity.this, EventListActivity.class);
-                startActivity(intent);
-            }
-        });
-        announcementsButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(ProfileActivity.this, AnnouncementListActivity.class);
-                intent.putExtra("userId", userId);
                 startActivity(intent);
             }
         });
