@@ -2,7 +2,9 @@ package com.oopsipushedtomain;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -26,6 +28,13 @@ public class ProfileListActivity extends AppCompatActivity {
     ProfileListAdapter profileAdapter; // Adapter for profiles
     private List<Profile> profileList = new ArrayList<>(); // List to store profiles
 
+    /**
+     * Initializes the parameters of the class
+     *
+     * @param savedInstanceState If the activity is being re-initialized after
+     *                           previously being shut down then this Bundle contains the data it most
+     *                           recently supplied in {@link #onSaveInstanceState}.  <b><i>Note: Otherwise it is null.</i></b>
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,10 +44,51 @@ public class ProfileListActivity extends AppCompatActivity {
         profilesRecyclerView.setLayoutManager(new LinearLayoutManager(this)); // Set layout manager
 
         // Initialize adapter and set it to RecyclerView
-        profileAdapter = new ProfileListAdapter(this, profileList);
-        profilesRecyclerView.setAdapter(profileAdapter);
+        profileAdapter = new ProfileListAdapter(this, profileList, new OnItemClickListener() {
+            @Override
+            public void onItemClick(Profile profile) {
+                showDeleteConfirmationDialog(profile);
+            }
+        });
 
-        fetchProfiles(); // Fetch profiles from database
+        profilesRecyclerView.setAdapter(profileAdapter); // Don't forget to set the adapter to the RecyclerView
+
+        fetchProfiles(); // Fetch profiles from Firestore and populate the RecyclerView
+    }
+
+    /**
+     * Shows a confirmation dialog for deleting a profile
+     * @param profile The profile selected
+     */
+    private void showDeleteConfirmationDialog(Profile profile) {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Profile")
+                .setMessage("Are you sure you want to delete this profile?")
+                .setPositiveButton(android.R.string.yes, (dialog, which) -> {
+                    deleteProfile(profile);
+                })
+                .setNegativeButton(android.R.string.no, null)
+                .show();
+    }
+
+    /**
+     * Deletes a profile on the database
+     * @param profile The profile to delete
+     */
+    private void deleteProfile(Profile profile) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        Toast Toast = null;
+        db.collection("users").document(profile.getUserId())
+                .delete()
+                .addOnSuccessListener(aVoid -> {
+                    // Handle successful deletion
+                    fetchProfiles(); // Refresh the list after deletion
+                    Toast.makeText(ProfileListActivity.this, "Profile deleted", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    // Handle failure
+                    Toast.makeText(ProfileListActivity.this, "Error deleting profile", Toast.LENGTH_SHORT).show();
+                });
     }
 
     /**

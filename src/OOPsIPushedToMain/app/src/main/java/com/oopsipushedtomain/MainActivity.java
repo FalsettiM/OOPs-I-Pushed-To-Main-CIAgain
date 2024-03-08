@@ -24,6 +24,16 @@ public class MainActivity extends AppCompatActivity {
     private CollectionReference usersRef;
     private Boolean foundFID = false;  // Flag used to check if the FID exists in the database
     private User user;
+
+    /**
+     * Sets the on click listener for the button on the page
+     * The button will open the profile page with a set user id
+     * It also intiializes the database parameters
+     *
+     * @param savedInstanceState If the activity is being re-initialized after
+     *                           previously being shut down then this Bundle contains the data it most
+     *                           recently supplied in {@link #onSaveInstanceState}.  <b><i>Note: Otherwise it is null.</i></b>
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -103,7 +113,8 @@ public class MainActivity extends AppCompatActivity {
     /**
      * The FID does not already exist in the database, so we create a new 'users' document and
      * register the FID in the 'fid' field.
-     * @param fid   String of the FID to register
+     *
+     * @param fid String of the FID to register
      */
     private void registerFID(String fid) {
         Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
@@ -118,6 +129,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Returns the value of the foundFID flag
+     
      * @return Boolean value of foundFID flag
      */
     public Boolean getFoundFID() {

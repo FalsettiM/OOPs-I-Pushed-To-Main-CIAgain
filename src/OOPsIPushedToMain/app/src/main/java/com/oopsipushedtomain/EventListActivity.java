@@ -2,6 +2,7 @@ package com.oopsipushedtomain;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -13,6 +14,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -22,12 +24,12 @@ import java.util.ArrayList;
  * EventListActivity is responsible for displaying a list of events to the user.
  * It acts as the entry point for users to view events, and upon selection, provides detailed information
  * about the selected event. This activity supports different actions based on the user's role (attendee or organizer).
- *
+ * <p>
  * Outstanding issues:
  * 1. The user role check is currently hardcoded to always true, which does not reflect the actual user role.
- *    This needs to be replaced with a dynamic check to determine if the user is an attendee or an organizer.
+ * This needs to be replaced with a dynamic check to determine if the user is an attendee or an organizer.
  * 2. The deletion logic in EventDetailsActivityOrganizer does not currently update the event list in this activity.
- *    A mechanism to refresh the event list after an event is deleted needs to be implemented.
+ * A mechanism to refresh the event list after an event is deleted needs to be implemented.
  */
 
 public class EventListActivity extends AppCompatActivity {
@@ -35,6 +37,14 @@ public class EventListActivity extends AppCompatActivity {
     private ListView eventList;
     private ArrayList<Event> eventDataList;
     private ArrayAdapter<Event> eventAdapter;
+
+    /**
+     * Initializes the parameters of the class
+     *
+     * @param savedInstanceState If the activity is being re-initialized after
+     *                           previously being shut down then this Bundle contains the data it most
+     *                           recently supplied in {@link #onSaveInstanceState}.  <b><i>Note: Otherwise it is null.</i></b>
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,6 +55,9 @@ public class EventListActivity extends AppCompatActivity {
         setupListeners();
     }
 
+    /**
+     * Initializes the views in the layout
+     */
     private void initializeViews() {
         eventDataList = new ArrayList<>();
         eventList = findViewById(R.id.EventListView);
@@ -52,6 +65,9 @@ public class EventListActivity extends AppCompatActivity {
         eventList.setAdapter(eventAdapter);
     }
 
+    /**
+     * Sets up click listeners for the buttons on this page
+     */
     private void setupListeners() {
         // Create Event button functionality
         Button createEventButton = findViewById(R.id.create_event_button);
@@ -95,22 +111,25 @@ public class EventListActivity extends AppCompatActivity {
         eventList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                // Assuming the adapter is populated with Event objects, you can cast directly to Event
                 Event selectedEvent = (Event) parent.getItemAtPosition(position);
-                Intent intent;
+                if (selectedEvent != null && selectedEvent.getEventId() != null) {
+                    String eventId = selectedEvent.getEventId();
+                    Log.d("EventListActivity", "Clicked event ID: " + eventId);
 
-                // TODO: Replace the following condition with actual logic to determine user role
-                if (true) {
-                    intent = new Intent(EventListActivity.this, EventDetailsActivity.class);
+                    Intent intent = new Intent(EventListActivity.this, EventDetailsActivity.class);
+                    intent.putExtra("selectedEvent", selectedEvent);
+                    startActivity(intent);
                 } else {
-                    intent = new Intent(EventListActivity.this, EventDetailsActivity.class);
+                    Log.e("EventListActivity", "The event or event ID is null.");
                 }
-
-                intent.putExtra("selectedEvent", selectedEvent);
-                startActivity(intent);
             }
         });
     }
 
+    /**
+     * Refresh from the database when this activity is shown on the screen
+     */
     @Override
     protected void onResume() {
         super.onResume();
@@ -118,15 +137,13 @@ public class EventListActivity extends AppCompatActivity {
         db.collection("events").get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 eventDataList.clear();
-                for (QueryDocumentSnapshot document : task.getResult()) {
-                    String title = document.getString("title");
-                    String startDateTime = document.getString("startDateTime");
-                    String endDateTime = document.getString("endDateTime");
-                    String details = document.getString("details");
-                    String eventId = document.getId();
-                    // Extract other fields as necessary and create a new Event object
-                    Event event = new Event(eventId, title, startDateTime, endDateTime, details, "", "", 0);
-                    eventDataList.add(event);
+                for (DocumentSnapshot documentSnapshot : task.getResult()) {
+                    Event event = documentSnapshot.toObject(Event.class);
+                    if (event != null) {
+                        // Set the eventId of the Event object to the document ID
+                        event.setEventId(documentSnapshot.getId());
+                        eventDataList.add(event);
+                    }
                 }
                 eventAdapter.notifyDataSetChanged();
             } else {
@@ -134,5 +151,6 @@ public class EventListActivity extends AppCompatActivity {
             }
         });
     }
+
 
 }
