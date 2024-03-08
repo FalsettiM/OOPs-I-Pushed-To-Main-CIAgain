@@ -1,6 +1,16 @@
 package com.oopsipushedtomain;
 
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Represents an event within the application.
@@ -19,31 +29,35 @@ public class Event implements Serializable {
     private String description;
     private String location; // Optional
     private String posterUrl;
-    private String qrCodeData;
     private int attendeeLimit; // Optional
+
+    // Database parameters
+    private FirebaseFirestore db;
+    private CollectionReference eventRef;
+    private DocumentReference eventDocRef;
+
+    // Firebase storage
+    private FirebaseStorage storage;
+    private StorageReference storageRef;
 
     /**
      * Constructs a new Event instance.
      *
-     * @param eventId The unique identifier for the event.
      * @param title The title of the event.
      * @param startTime The start time of the event.
      * @param endTime The end time of the event.
      * @param description A description of the event.
      * @param location The location of the event.
      * @param posterUrl The URL to an image for the event.
-     * @param qrCodeData QR code data related to the event, potentially for quick check-ins or additional information.
      * @param attendeeLimit The maximum number of attendees for the event. Use 0 or a negative number to indicate no limit.
      */
-    public Event(String eventId, String title, String startTime, String endTime, String description, String location, String posterUrl, String qrCodeData, int attendeeLimit) {
-        this.eventId = eventId;
+    public Event(String title, String startTime, String endTime, String description, String location, String posterUrl, int attendeeLimit) {
         this.title = title;
         this.startTime = startTime;
         this.endTime = endTime;
         this.description = description;
         this.location = location; // Optional
         this.posterUrl = posterUrl;
-        this.qrCodeData = qrCodeData;
         this.attendeeLimit = attendeeLimit; // Optional
     }
 
@@ -51,7 +65,47 @@ public class Event implements Serializable {
      * No-argument constructor so that Event can be deserialized
      */
     public Event() {
+    }
 
+    private void InitDatabase() {
+        db = FirebaseFirestore.getInstance();
+        eventRef = db.collection("events");
+        storage = FirebaseStorage.getInstance();
+        storageRef = storage.getReference();
+        eventId = eventRef.document().getId().toUpperCase();
+        eventId = "EVNT-" + eventId;
+    }
+
+    /**
+     * Adds the current object to the database
+     */
+    public void addEventToDatabase() {
+        InitDatabase();
+        generateQRcodeData();
+
+        Map<String, Object> event = new HashMap<>();
+        event.put("title", title);
+        event.put("startTime", startTime);
+        event.put("endTime", endTime);
+        event.put("description", description);
+        event.put("location", location);
+        event.put("posterUrl", posterUrl);
+        event.put("attendeeLimit", attendeeLimit);
+
+        db.collection("events").document(eventId).set(event)
+                .addOnSuccessListener(aVoid -> {
+                    // Successfully added/updated event with specific ID
+                    System.out.println("Event successfully added/updated with ID: " + eventId);
+                })
+                .addOnFailureListener(e -> {
+                    // Failed to add/update event
+                    System.err.println("Error adding/updating event: " + e.getMessage());
+                });
+    }
+
+
+    private void generateQRcodeData() {
+        QRCode qrCode = new QRCode(eventId);
     }
 
     /**
@@ -164,22 +218,6 @@ public class Event implements Serializable {
      */
     public void setPosterUrl(String posterUrl) {
         this.posterUrl = posterUrl;
-    }
-
-    /**
-     * Gets the QR code data associated with the event.
-     * @return the event's QR code data
-     */
-    public String getQrCodeData() {
-        return qrCodeData;
-    }
-
-    /**
-     * Sets the QR code data for the event.
-     * @param qrCodeData the QR code data to set
-     */
-    public void setQrCodeData(String qrCodeData) {
-        this.qrCodeData = qrCodeData;
     }
 
     /**
