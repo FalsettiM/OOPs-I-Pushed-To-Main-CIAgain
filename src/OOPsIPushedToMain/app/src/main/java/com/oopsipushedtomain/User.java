@@ -243,7 +243,8 @@ public class User {
                         } else {
                             // Handle the case where birthday is null or not a Timestamp. You could set a default value or leave it as null
                             birthday = null; // or set a default date if appropriate
-                        }                        email = (String) data.get("email");
+                        }
+                        email = (String) data.get("email");
                         homepage = (String) data.get("homepage");
                         name = (String) data.get("name");
                         nickname = (String) data.get("nickname");
@@ -521,15 +522,21 @@ public class User {
 
     // ChatGPT: Now i want to do the reverse and load the image and convert it back to a bitmap
     public void getProfileImage(OnBitmapReceivedListener listener) {
-        StorageReference profileImageRef = storageRef.child(imageUID);
+        if (imageUID == null || imageUID.isEmpty()) {
+            Log.d("User", "No imageUID available for user: " + uid);
+            // Call the listener with a null or default bitmap
+            listener.onBitmapReceived(null); // or pass a default Bitmap
+            return;
+        }
 
-        // Down load the image
+        StorageReference profileImageRef = storageRef.child(imageUID);
         final long ONE_MEGABYTE = 1024 * 1024;
         profileImageRef.getBytes(ONE_MEGABYTE).addOnSuccessListener(bytes -> {
-            // Convert to a bitmap
             Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-            Log.d("Firebase Storage", "Image successfully loaded");
             listener.onBitmapReceived(bitmap);
+        }).addOnFailureListener(e -> {
+            Log.e("User", "Failed to load profile image for user: " + uid, e);
+            listener.onBitmapReceived(null); // or pass a default Bitmap on failure
         });
     }
 

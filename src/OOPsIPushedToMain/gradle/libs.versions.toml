@@ -11,6 +11,7 @@ firebaseMessaging = "23.4.1"
 navigationFragment = "2.7.7"
 fragmentTesting = "1.6.2"
 espressoContrib = "3.5.1"
+glide = "5.0.0-rc01"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -24,6 +25,7 @@ firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging
 navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment", version.ref = "navigationFragment" }
 fragment-testing = { group = "androidx.fragment", name = "fragment-testing", version.ref = "fragmentTesting" }
 espresso-contrib = { group = "androidx.test.espresso", name = "espresso-contrib", version.ref = "espressoContrib" }
+glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

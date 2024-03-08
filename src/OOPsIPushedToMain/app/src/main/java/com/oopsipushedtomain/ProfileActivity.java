@@ -89,7 +89,8 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
                     if (data != null) {
                         String qrCodeString = data.getStringExtra("result");
 
-                        // TODO: Check in the user into an event using the UID
+                        // Check the user into the event
+                        user.checkIn(qrCodeString);
 
                         // Show the scanned data
                         Toast.makeText(getApplicationContext(), "Checked into event: " + qrCodeString, Toast.LENGTH_LONG).show();
