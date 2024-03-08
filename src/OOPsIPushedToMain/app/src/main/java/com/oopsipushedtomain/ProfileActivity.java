@@ -1,9 +1,12 @@
 package com.oopsipushedtomain;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -12,6 +15,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContract;
@@ -50,6 +54,7 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
     private FirebaseFirestore db;
     private String userId = "USER-0000000000"; // Get from bundle
     private User user;
+    private Drawable defaultImage;
 
     private final ActivityResultLauncher<Intent> cameraResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -93,16 +98,38 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
 
         // Set-up ImageView and set on-click listener
         profileImageView = findViewById(R.id.profileImageView);
+        defaultImage = ((ImageView) profileImageView).getDrawable();
         profileImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d("ProfileActivity", "Profile image view clicked");
-                Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                cameraResultLauncher.launch(cameraIntent);
+                Drawable currentImage = ((ImageView) profileImageView).getDrawable();
+                if (currentImage.equals(defaultImage)) {
+                    Log.d("ProfileActivity", "Profile image view clicked");
+                    Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    cameraResultLauncher.launch(cameraIntent);
+                } else {
+                    // Only show the AlertDialog if the current image is not the default image
+                    new AlertDialog.Builder(ProfileActivity.this)
+                            .setTitle("Delete Profile Image")
+                            .setMessage("Are you sure you want to delete your profile picture?")
+                            .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // User clicked Yes button
+                                    Log.d("ProfileActivity", "Delete profile image");
+                                    if (user != null) {
+                                        user.deleteProfileImage();
+                                        // Update UI to show the default image
+                                        ((ImageView) profileImageView).setImageDrawable(defaultImage);
+                                    }
+                                }
+                            })
+                            .setNegativeButton(android.R.string.no, null)
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .show();
+                }
             }
         });
     }
-
     /**
      * Gets user data based on user ID and loads data
      */
