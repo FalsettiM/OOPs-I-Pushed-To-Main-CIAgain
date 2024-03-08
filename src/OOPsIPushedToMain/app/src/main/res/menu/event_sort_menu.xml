@@ -1,0 +1,11 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/sort_by_all_events"
+        android:title="All Events"/>
+    <item
+        android:id="@+id/sort_by_signed_up"
+        android:title="Signed Up"/>
+    <item
+        android:id="@+id/sort_by_user_event"
+        android:title="Your Events"/>
+</menu>
