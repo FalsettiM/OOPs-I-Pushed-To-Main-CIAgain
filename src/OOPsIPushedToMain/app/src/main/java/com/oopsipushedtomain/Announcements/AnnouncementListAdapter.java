@@ -27,12 +27,24 @@ public class AnnouncementListAdapter extends ArrayAdapter<Announcement> {
     private final ArrayList<Announcement> announcements;
     private final Context context;
 
+    /**
+     * Constructs a new AnnouncementListAdapter
+     * @param context The current context, used to inflate the layout file.
+     * @param announcements ArrayList of Announcements objects to add to the adapter.
+     */
     public AnnouncementListAdapter(Context context, ArrayList<Announcement> announcements) {
         super(context, 0, announcements);
         this.announcements = announcements;
         this.context = context;
     }
 
+    /**
+     * Provides a view for the AdapterView
+     * @param position Position of an individual announcement in the list
+     * @param convertView Old view to reuse if applicable
+     * @param parent Parent view to attach this view to
+     * @return View corresponding to the data at the specified position
+     */
     @SuppressLint("DiscouragedApi")
     @NonNull
     @Override

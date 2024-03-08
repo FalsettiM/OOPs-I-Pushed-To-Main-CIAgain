@@ -73,6 +73,7 @@ public class Event implements Serializable {
     }
 
     /**
+
      * Constructs a new Event instance with a given eventID.
      *
      * @param eventId       The id of the event

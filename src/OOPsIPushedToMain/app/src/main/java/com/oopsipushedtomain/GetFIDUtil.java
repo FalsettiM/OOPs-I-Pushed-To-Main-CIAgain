@@ -12,15 +12,16 @@ public final class GetFIDUtil {
     private static String fid = "";
 
     /**
-     * Interface for checking when data was received
+     * Interface that allows for synchronization
      */
     public interface DataLoadedListener {
         void onDataLoaded(String fid);
     }
 
     /**
-     * Get the fid from firebase
-     * @param listener The listener for determining when the data transfer is complete
+     * Obtains the Firebase Installation ID and stores it in fid, then lets the listener now
+     * to proceed
+     * @param listener DataLoadedListener that controls if the app can proceed
      */
     public static void GetFID(DataLoadedListener listener) {
         // Get the FID
@@ -32,6 +33,7 @@ public final class GetFIDUtil {
             } else {
                 Log.e("GetFIDUtil", "Couldn't get FID");
             }
+            // Let the app know it can proceed by passing back the FID
             listener.onDataLoaded(fid);
         });
     }
