@@ -1,5 +1,6 @@
 package com.oopsipushedtomain;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -7,7 +8,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.DialogFragment;
@@ -41,12 +47,16 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
     private FirebaseFirestore db;
     private String userId = "USER-0000000000"; // Get from bundle
 
+    // Activity result launcher for getting the result of the QRCodeScan
+    private ActivityResultLauncher<Intent> qrCodeActivityResultLauncher;
+    private QRCode qrCode;
+
     /**
      * Initializes the activity, sets up the UI elements, and prepares Firestore interaction
-     * @param savedInstanceState If the activity is being re-initialized after
-     *     previously being shut down then this Bundle contains the data it most
-     *     recently supplied in {@link #onSaveInstanceState}.  <b><i>Note: Otherwise it is null.</i></b>
      *
+     * @param savedInstanceState If the activity is being re-initialized after
+     *                           previously being shut down then this Bundle contains the data it most
+     *                           recently supplied in {@link #onSaveInstanceState}.  <b><i>Note: Otherwise it is null.</i></b>
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +71,34 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
 
         // Setup listeners for interactive elements
         setupListeners();
+
+        // Qr code activity launcher
+        // ChatGPT, How do I pass a variable back to the calling activity?, Can you give me the code for registerForActivityResult()
+        // Register the activity result
+        qrCodeActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+            @Override
+            public void onActivityResult(ActivityResult o) {
+                if (o.getResultCode() == Activity.RESULT_OK) {
+                    // Get the data
+                    Intent data = o.getData();
+
+                    // If the data is not null, load the QR code
+                    if (data != null) {
+                        String qrCodeString = data.getStringExtra("result");
+
+                        // TODO: Check in the user into an event using the UID
+
+                        // Show the scanned data
+                        Toast.makeText(getApplicationContext(),qrCodeString, Toast.LENGTH_LONG).show();
+                        Log.d("QR Code", "Checked into event: " + qrCodeString);
+
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Data Error", Toast.LENGTH_LONG).show();
+                        Log.d("QR Code", "QR Code Not Scanned");
+                    }
+                }
+            }
+        });
     }
 
     /**
@@ -86,7 +124,7 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
                         String nickname = document.getString("nickname");
                         String homepage = document.getString("homepage");
                         String address = document.getString("address");
-                        String phone = document.getLong("phone").toString();
+                        String phone = document.getString("phone");
                         String email = document.getString("email");
 
                         // Update UI elements
@@ -110,6 +148,7 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
     /**
      * Handles the positive click action from the edit field dialog.
      * Updates the corresponding profile field with the new value entered by the user.
+     *
      * @param dialog
      * @param fieldName
      * @param fieldValue
@@ -163,6 +202,7 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
 
     /**
      * Handles the positive click action from the edit field dialog.
+     *
      * @param dialog
      */
     @Override
@@ -172,6 +212,7 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
 
     /**
      * Shows the edit field dialog for a field on the page using its current value
+     *
      * @param fieldName
      * @param fieldValue
      */
@@ -252,6 +293,20 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
                 Intent intent = new Intent(ProfileActivity.this, AdminActivity.class);
                 startActivity(intent);
             }
+        });
+        scanQRCodeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Switch to the scanning activity and scan
+                Intent intent = new Intent(getApplicationContext(), QRScanner.class);
+
+                // Start the activity
+                qrCodeActivityResultLauncher.launch(intent);
+
+                // This is asynchronous. DO NOT PUT CODE HERE
+
+            }
+
         });
     }
 }
