@@ -17,7 +17,6 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.messaging.FirebaseMessaging;
 import com.oopsipushedtomain.R;
 
 import java.util.HashMap;
@@ -28,7 +27,6 @@ import java.util.Map;
  * The announcements are created and uploaded to the database where a Cloud Function notices the
  * new announcement and send a notification to that event topic.
  * @author  Aidan Gironella
- * @version 1.1
  * @see     PushNotificationService
  */
 public class SendAnnouncementActivity extends AppCompatActivity {
@@ -70,15 +68,14 @@ public class SendAnnouncementActivity extends AppCompatActivity {
 
     /**
      * This method receives an event ID from the Intent, and uses it to set eventRef. The database
-     * is then queried to find the event in the 'events' collection
+     * is then queried to find the event in the 'events' collection. Uses the event title it
+     * finds in the database to get the (uneditable) announcementTitleE EditText.
      */
     private void getEvent() {
-        // TODO: Integration - in Ningze EventDetailsActivityOrganizer.java, on line 108 (or inside
-        //  btnSendNotification setOnClickListener, before startActivity), add this line:
-        //  intent.putExtra("eventId", event.getEventId());
         eventId = getIntent().getStringExtra("eventId");
         Log.d(TAG, eventId);
 
+        // Get the event from the database
         eventRef = db.collection("events").document(eventId);
         eventRef.get().addOnCompleteListener(getEventTask -> {
             if (getEventTask.isSuccessful()) {
@@ -88,7 +85,8 @@ public class SendAnnouncementActivity extends AppCompatActivity {
                     Log.e(TAG, String.format("Found event %s", eventTitle));
                     eventTitleE.setText(eventTitle);
 
-                    // TODO: testing, delete
+                    // TODO: used for testing, this should actually be called when attendees
+                    //  sign up for events but that doesn't exist yet so this is a stopgap
 //                    FirebaseMessaging.getInstance().subscribeToTopic(eventDoc.getId());
 //                    Log.e(TAG, "Subscribed to topic " + eventDoc.getId());
                 } else {

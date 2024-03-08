@@ -11,7 +11,6 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.oopsipushedtomain.Event;
-import com.oopsipushedtomain.EventDetailsActivity;
 import com.oopsipushedtomain.R;
 
 import java.util.ArrayList;
@@ -31,7 +30,6 @@ public class AnnouncementListActivity extends AppCompatActivity {
     private AnnouncementListAdapter announcementListAdapter;
     private FirebaseFirestore db;
     private DocumentReference announcementRef;
-    private Event selectedEvent;
     private String eventId;
     private ArrayList<String> announcements;
     private final String TAG = "EventAnnouncements";
@@ -55,26 +53,6 @@ public class AnnouncementListActivity extends AppCompatActivity {
         // Initialize Firestore instance and get the event's announcements
         db = FirebaseFirestore.getInstance();
         getEventAnnouncements();
-        addListeners();
-    }
-
-    /**
-     * Adds listeners for the activity
-     */
-    private void addListeners() {
-
-        announcementList.setOnItemClickListener((adapterView, view, position, id) -> {
-            Announcement announcement = announcementDataList.get(position);
-            view.setSelected(true);
-
-            // TODO: Integration - This should properly open the event details for the
-            //  announcement's event so try just uncommenting this. Might need to mess
-            //  with the nesting for EventDetailsActivityAttendee.class
-            Intent i = new Intent(getBaseContext(), EventDetailsActivity.class);
-            Event selectedEvent = getSelectedEvent(announcement.getEventId());
-            i.putExtra("selectedEvent", selectedEvent);
-            startActivity(i);
-        });
     }
 
     /**
@@ -127,24 +105,5 @@ public class AnnouncementListActivity extends AppCompatActivity {
                         getEventTask.getException());
             }
         });
-    }
-
-    private Event getSelectedEvent(String selectedEventId) {
-        DocumentReference eventRef = db.collection("events").document(selectedEventId);
-        eventRef.get().addOnCompleteListener(getEventTask -> {
-            if (getEventTask.isSuccessful()) {
-                DocumentSnapshot eventDoc = getEventTask.getResult();
-                if (eventDoc.exists()) {  // The announcement was successfully found
-                    selectedEvent = eventDoc.toObject(Event.class);
-                } else {
-                    Log.e(TAG,
-                            String.format("Could not find event %s", eventDoc));
-                }
-            } else {
-                Log.e(TAG, "Get individual event task failed, ",
-                        getEventTask.getException());
-            }
-        });
-        return selectedEvent;
     }
 }
