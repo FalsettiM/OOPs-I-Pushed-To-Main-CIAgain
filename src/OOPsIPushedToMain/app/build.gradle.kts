@@ -39,6 +39,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation(libs.firebase.messaging)
     implementation("androidx.navigation:navigation-fragment:2.7.7")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
@@ -49,5 +50,9 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-storage")
     implementation("com.google.firebase:firebase-messaging")
+
+    //Add the ZXing library for the QR code scanner https://github.com/zxing/zxing
+    implementation("com.journeyapps:zxing-android-embedded:4.2.0")
+    implementation("com.google.zxing:core:3.4.0")
 
 }
