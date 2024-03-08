@@ -23,10 +23,9 @@ import java.util.Map;
  * This class is used to model events, including their details such as title, start and end times,
  * description, location, poster URL, QR code data, and attendee limit. It implements Serializable
  * to allow event instances to be passed between activities or components.
- *
+ * <p>
  * Outstanding issues: None known at this time.
  */
-
 public class Event implements Serializable {
     private String eventId;
     private String title;
@@ -54,12 +53,12 @@ public class Event implements Serializable {
     /**
      * Constructs a new Event instance.
      *
-     * @param title The title of the event.
-     * @param startTime The start time of the event.
-     * @param endTime The end time of the event.
-     * @param description A description of the event.
-     * @param location The location of the event.
-     * @param posterUrl The URL to an image for the event.
+     * @param title         The title of the event.
+     * @param startTime     The start time of the event.
+     * @param endTime       The end time of the event.
+     * @param description   A description of the event.
+     * @param location      The location of the event.
+     * @param posterUrl     The URL to an image for the event.
      * @param attendeeLimit The maximum number of attendees for the event. Use 0 or a negative number to indicate no limit.
      */
     public Event(String title, String startTime, String endTime, String description, String location, String posterUrl, int attendeeLimit) {
@@ -72,6 +71,19 @@ public class Event implements Serializable {
         this.attendeeLimit = attendeeLimit; // Optional
         this.signedUpAttendees = new ArrayList<>(); // Initialize attendees list
     }
+
+    /**
+     * Constructs a new Event instance with a given eventID.
+     *
+     * @param eventId       The id of the event
+     * @param title         The title of the event.
+     * @param startTime     The start time of the event.
+     * @param endTime       The end time of the event.
+     * @param description   A description of the event.
+     * @param location      The location of the event.
+     * @param posterUrl     The URL to an image for the event.
+     * @param attendeeLimit The maximum number of attendees for the event. Use 0 or a negative number to indicate no limit.
+     */
     public Event(String eventId, String title, String startTime, String endTime, String description, String location, String posterUrl, int attendeeLimit) {
         this.eventId = eventId;
         this.title = title;
@@ -85,17 +97,22 @@ public class Event implements Serializable {
     }
 
 
-
     /**
      * No-argument constructor so that Event can be deserialized
      */
     public Event() {
     }
 
+    /**
+     * Listener for determining when a bitmap file is received from the database
+     */
     public interface OnBitmapReceivedListener {
         void onBitmapReceived(Bitmap bitmap);
     }
 
+    /**
+     * Initializes the firebase parameters
+     */
     private void InitDatabase() {
         db = FirebaseFirestore.getInstance();
         eventRef = db.collection("events");
@@ -129,24 +146,26 @@ public class Event implements Serializable {
         event.put("signedUpAttendees", signedUpAttendees); // Include the attendees list
 
 
-        db.collection("events").document(eventId).set(event)
-                .addOnSuccessListener(aVoid -> {
-                    // Successfully added/updated event with specific ID
-                    System.out.println("Event successfully added/updated with ID: " + eventId);
-                })
-                .addOnFailureListener(e -> {
-                    // Failed to add/update event
-                    System.err.println("Error adding/updating event: " + e.getMessage());
-                });
+        db.collection("events").document(eventId).set(event).addOnSuccessListener(aVoid -> {
+            // Successfully added/updated event with specific ID
+            System.out.println("Event successfully added/updated with ID: " + eventId);
+        }).addOnFailureListener(e -> {
+            // Failed to add/update event
+            System.err.println("Error adding/updating event: " + e.getMessage());
+        });
     }
 
 
+    /**
+     * Generates a QR Code for this event
+     */
     private void generateQRcodeData() {
         QRCode qrCode = new QRCode(eventId);
     }
 
     /**
      * Gets the unique identifier for the event.
+     *
      * @return the event's unique identifier
      */
     public String getEventId() {
@@ -155,6 +174,7 @@ public class Event implements Serializable {
 
     /**
      * Sets the unique identifier for the event.
+     *
      * @param eventId the unique identifier to set
      */
     public void setEventId(String eventId) {
@@ -163,6 +183,7 @@ public class Event implements Serializable {
 
     /**
      * Gets the title of the event.
+     *
      * @return the event's title
      */
     public String getTitle() {
@@ -171,6 +192,7 @@ public class Event implements Serializable {
 
     /**
      * Sets the title of the event.
+     *
      * @param title the title to set
      */
     public void setTitle(String title) {
@@ -179,6 +201,7 @@ public class Event implements Serializable {
 
     /**
      * Gets the start time of the event.
+     *
      * @return the event's start time
      */
     public String getStartTime() {
@@ -187,6 +210,7 @@ public class Event implements Serializable {
 
     /**
      * Sets the start time of the event.
+     *
      * @param startTime the start time to set
      */
     public void setStartTime(String startTime) {
@@ -195,6 +219,7 @@ public class Event implements Serializable {
 
     /**
      * Gets the end time of the event.
+     *
      * @return the event's end time
      */
     public String getEndTime() {
@@ -203,6 +228,7 @@ public class Event implements Serializable {
 
     /**
      * Sets the end time of the event.
+     *
      * @param endTime the end time to set
      */
     public void setEndTime(String endTime) {
@@ -211,6 +237,7 @@ public class Event implements Serializable {
 
     /**
      * Gets the description of the event.
+     *
      * @return the event's description
      */
     public String getDescription() {
@@ -219,6 +246,7 @@ public class Event implements Serializable {
 
     /**
      * Sets the description of the event.
+     *
      * @param description the description to set
      */
     public void setDescription(String description) {
@@ -227,6 +255,7 @@ public class Event implements Serializable {
 
     /**
      * Gets the location of the event. This field is optional.
+     *
      * @return the event's location
      */
     public String getLocation() {
@@ -235,6 +264,7 @@ public class Event implements Serializable {
 
     /**
      * Sets the location of the event. This field is optional.
+     *
      * @param location the location to set
      */
     public void setLocation(String location) {
@@ -243,6 +273,7 @@ public class Event implements Serializable {
 
     /**
      * Gets the URL of the event's poster.
+     *
      * @return the URL of the event's poster
      */
     public String getPosterUrl() {
@@ -251,6 +282,7 @@ public class Event implements Serializable {
 
     /**
      * Sets the URL of the event's poster.
+     *
      * @param posterUrl the URL to set
      */
     public void setPosterUrl(String posterUrl) {
@@ -259,6 +291,7 @@ public class Event implements Serializable {
 
     /**
      * Gets the limit of attendees for the event. This field is optional.
+     *
      * @return the attendee limit
      */
     public int getAttendeeLimit() {
@@ -267,6 +300,7 @@ public class Event implements Serializable {
 
     /**
      * Sets the limit of attendees for the event. This field is optional.
+     *
      * @param attendeeLimit the attendee limit to set
      */
     public void setAttendeeLimit(int attendeeLimit) {
@@ -288,8 +322,6 @@ public class Event implements Serializable {
     public void setSignedUpAttendees(List<String> signedUpAttendees) {
         this.signedUpAttendees = signedUpAttendees;
     }
-
-
 
 
     // ChatGPT: Now i want to do the reverse and load the image and convert it back to a bitmap

@@ -1,3 +1,7 @@
+/**
+ * This file contains the fragment for the admin dashboard
+ * It allows the admin to choose what task they want to perform
+ */
 package com.oopsipushedtomain;
 
 import android.content.Intent;

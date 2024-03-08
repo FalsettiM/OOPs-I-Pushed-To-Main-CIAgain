@@ -17,15 +17,15 @@ import java.util.ArrayList;
  * to views for display in a ListView. This adapter is responsible for creating view items
  * for each event in the list, allowing for the display of event titles (or other event properties)
  * within the ListView in EventListActivity.
- *
+ * <p>
  * This adapter inflates a custom layout (item_event.xml) for each item in the list, which currently
  * displays the event title. The adapter can be extended to display more detailed information about
  * each event as needed.
- *
+ * <p>
  * Outstanding issues:
  * 1. The adapter currently only displays the event title. There may be a need to display more information
- *    about each event, such as the event date, location, or a thumbnail image, which would require modifications
- *    to both the adapter's getView method and the item_event.xml layout.
+ * about each event, such as the event date, location, or a thumbnail image, which would require modifications
+ * to both the adapter's getView method and the item_event.xml layout.
  */
 
 public class EventListAdapter extends ArrayAdapter<Event> {
@@ -35,10 +35,10 @@ public class EventListAdapter extends ArrayAdapter<Event> {
     /**
      * Constructs a new EventListAdapter.
      *
-     * @param events An ArrayList of Event objects to be represented in the ListView.
+     * @param events  An ArrayList of Event objects to be represented in the ListView.
      * @param context The current context. Used to inflate the layout file.
      */
-    public EventListAdapter(ArrayList<Event> events, Context context){
+    public EventListAdapter(ArrayList<Event> events, Context context) {
         super(context, 0, events);
         this.events = events;
         this.context = context;
@@ -47,9 +47,9 @@ public class EventListAdapter extends ArrayAdapter<Event> {
     /**
      * Provides a view for an AdapterView (ListView).
      *
-     * @param position The position in the list of data that should be displayed in the list item view.
+     * @param position    The position in the list of data that should be displayed in the list item view.
      * @param convertView The old view to reuse, if possible.
-     * @param parent The parent that this view will eventually be attached to.
+     * @param parent      The parent that this view will eventually be attached to.
      * @return A View corresponding to the data at the specified position.
      */
     @NonNull
@@ -57,7 +57,7 @@ public class EventListAdapter extends ArrayAdapter<Event> {
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
         View view = convertView;
 
-        if (view == null){
+        if (view == null) {
             view = LayoutInflater.from(context).inflate(R.layout.item_event, parent, false);
         }
 
@@ -69,4 +69,4 @@ public class EventListAdapter extends ArrayAdapter<Event> {
 
         return view;
     }
- }
+}

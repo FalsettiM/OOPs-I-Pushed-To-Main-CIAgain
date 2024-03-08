@@ -17,8 +17,8 @@ public class ImageInfo {
     /**
      * Constructs a new ImageInfo instance.
      *
-     * @param image The Bitmap representation of the image.
-     * @param storagePath The storage path of the image in Firebase Storage.
+     * @param image               The Bitmap representation of the image.
+     * @param storagePath         The storage path of the image in Firebase Storage.
      * @param firestoreDocumentId The Firestore document ID associated with the image. This parameter is optional and can be null.
      */
     public ImageInfo(Bitmap image, String storagePath, String firestoreDocumentId) {
