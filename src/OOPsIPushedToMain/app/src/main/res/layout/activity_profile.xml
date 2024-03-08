@@ -41,7 +41,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:text="Tester Name"
+                android:hint="Enter your name"
                 android:textAppearance="@style/TextAppearance.AppCompat.Large"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@id/profileImageView"
@@ -52,7 +52,7 @@
                 android:id="@+id/nicknameTextView"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="J man"
+                android:hint="Enter your nickname"
                 app:layout_constraintStart_toStartOf="@id/nameTextView"
                 app:layout_constraintTop_toBottomOf="@id/nameTextView" />
 
@@ -72,7 +72,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:text="Not Set"
+                android:hint="YYYY-MM-DD"
                 app:layout_constraintBottom_toBottomOf="@id/birthdayLabelTextView"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@id/birthdayLabelTextView"
@@ -92,7 +92,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:text="cmput301.com"
+                android:hint="https://yourwebsitehere.com"
                 app:layout_constraintBottom_toBottomOf="@id/homepageLabelTextView"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/homepageLabelTextView"
@@ -114,7 +114,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:text="123 App Street, Android City"
+                android:hint="123 App Street"
                 app:layout_constraintBottom_toBottomOf="@+id/addressLabelTextView"
                 app:layout_constraintStart_toEndOf="@+id/addressLabelTextView" />
 
@@ -133,7 +133,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:text="+1234567890"
+                android:hint="7801234567"
                 app:layout_constraintStart_toEndOf="@id/phoneNumberLabelTextView"
                 app:layout_constraintTop_toTopOf="@+id/phoneNumberLabelTextView"
                 tools:layout_constraintTop_toTopOf="@id/phoneNumberLabelTextView" />
@@ -151,7 +151,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:text="justin@example.com"
+                android:hint="justin@example.com"
                 app:layout_constraintStart_toEndOf="@+id/emailLabelTextView"
                 app:layout_constraintTop_toTopOf="@+id/emailLabelTextView" />
 

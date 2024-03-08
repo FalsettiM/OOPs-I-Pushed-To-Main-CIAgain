@@ -1,15 +1,24 @@
 package com.oopsipushedtomain;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContract;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -35,10 +44,24 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
     // Declare UI elements for labels and values
     private TextView nameLabel, nicknameLabel, birthdayLabel, homepageLabel, addressLabel, phoneNumberLabel, emailLabel;
     private TextView nameValue, nicknameValue, birthdayValue, homepageValue, addressValue, phoneNumberValue, emailValue;
+    private View profileImageView;
+    private static final int CAMERA_PERMISSION_REQUEST_CODE = 100;
     private Button notificationsButton, eventsButton, announcementsButton, scanQRCodeButton;
     private Switch toggleGeolocationSwitch;
     private FirebaseFirestore db;
     private String userId = "USER-0000000000"; // Get from bundle
+
+    private final ActivityResultLauncher<Intent> cameraResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                Log.d("ProfileActivity", "ActivityResult received");
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                    Bitmap photo = (Bitmap) result.getData().getExtras().get("data");
+                    ((ImageView)profileImageView).setImageBitmap(photo);
+                    // Upload to Firebase
+                }
+            }
+    );
 
     /**
      * Initializes the activity, sets up the UI elements, and prepares Firestore interaction
@@ -60,6 +83,17 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
 
         // Setup listeners for interactive elements
         setupListeners();
+
+        // Set-up ImageView and set on-click listener
+        profileImageView = findViewById(R.id.profileImageView);
+        profileImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d("ProfileActivity", "Profile image view clicked");
+                Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                cameraResultLauncher.launch(cameraIntent);
+            }
+        });
     }
 
     /**
