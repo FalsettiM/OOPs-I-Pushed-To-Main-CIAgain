@@ -19,6 +19,7 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.auth.FirebaseAuthCredentialsProvider;
 import com.google.firebase.firestore.auth.User;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.oopsipushedtomain.Announcements.AnnouncementListActivity;
 import com.oopsipushedtomain.Announcements.SendAnnouncementActivity;
 
@@ -90,7 +91,7 @@ public class EventDetailsActivity extends AppCompatActivity {
             eventEndTimeEdit.setText(event.getEndTime());
             eventDescriptionEdit.setText(event.getDescription());
 
-            determineUserRole(currentUserUID, event.getEventId(), this::updateUIForRole);
+//            determineUserRole(currentUserUID, event.getEventId(), this::updateUIForRole);
 
             eventID = event.getEventId();
         }
@@ -127,6 +128,7 @@ public class EventDetailsActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 signUpForEvent(event.getEventId());
+                FirebaseMessaging.getInstance().subscribeToTopic(event.getEventId());
             }
         });
 
