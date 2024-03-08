@@ -83,6 +83,7 @@ public class User {
     private String phone = null;
 
     private String imageUID = null;
+    private String fid = null;
 
     // Announcements
     private ArrayList<String> announcementsList;
@@ -103,6 +104,13 @@ public class User {
      */
     public interface DataLoadedListener {
         void onDataLoaded();
+    }
+
+    /**
+     * Interface for checking when a new user is created
+     */
+    public interface UserCreatedListener {
+        void onDataLoaded(User user);
     }
 
     /**
@@ -127,7 +135,7 @@ public class User {
      * Generates a new user and uploads them to the database
      * Instantiates all parameters to null. They need to be set later
      */
-    public User() {
+    public User(UserCreatedListener listener) {
         // Initialize the database
         InitDatabase();
 
@@ -142,6 +150,8 @@ public class User {
         imageUID = userRef.document().getId().toUpperCase();
         imageUID = "IMGE-" + imageUID;
 
+        Log.e("asdf", "test");
+
         // Create a hash map for all string variables and set all fields to null
         HashMap<String, Object> data = new HashMap<>();
         data.put("address", address);
@@ -152,6 +162,7 @@ public class User {
         data.put("nickname", nickname);
         data.put("phone", phone);
         data.put("profileImage", imageUID);
+        data.put("fid", fid);
 
 
         // Create a new document and set all parameters
@@ -160,6 +171,8 @@ public class User {
         // Set the document reference to this document
         userDocRef = userRef.document(uid);
 
+
+        Log.e("asdf2", "test");
         // Create the inner collection for events
         userEventRef = userDocRef.collection("events");
 
@@ -170,6 +183,9 @@ public class User {
         userEventRef.document("checkedin").set(emptyData);
         userEventRef.document("created").set(emptyData);
         userEventRef.document("signedup").set(emptyData);
+
+        // Notify complete
+        listener.onDataLoaded(this);
     }
 
     /**
@@ -234,6 +250,7 @@ public class User {
                         nickname = (String) data.get("nickname");
                         phone = (String) data.get("phone");
                         imageUID = (String) data.get("profileImage");
+                        fid = (String) data.get("fid");
 
                         // Load the announcements
                         // ChatGPT: How do I load an array list from firebase
@@ -374,6 +391,21 @@ public class User {
         userDocRef.update(data);
     }
 
+    /**
+     * Updates the user's FID
+     *
+     * @param fid The fid of the installation
+     */
+    public void setFid(String fid) {
+        // Update in the class
+        this.fid = fid;
+
+        // Update in database
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("fid", this.fid);
+        userDocRef.update(data);
+    }
+
 
     // ChatGPT: How can you upload an image to firebase?
 
@@ -383,6 +415,10 @@ public class User {
      * @param profileImage The image to store as a bitmap
      */
     public void setProfileImage(Bitmap profileImage) {
+        if (imageUID == null || imageUID.isEmpty()) {
+            Log.e("Firebase Storage", "Invalid imageUID, cannot upload image.");
+            return;
+        }
         // Convert the bitmap to PNG for upload
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         profileImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
@@ -395,9 +431,27 @@ public class User {
         }).addOnFailureListener(exception -> {
             Log.d("Firebase Storage", "Image upload failed");
         });
-
     }
+    // ChatGPT: How can you delete an image to firebase storage?
+    /**
+     * Deletes the user's profile image in the database
+     *
+     */
+    public void deleteProfileImage() {
+        // Check if there is an image to delete
+        if (imageUID == null || imageUID.isEmpty()) {
+            Log.d("Firebase Storage", "No image to delete.");
+            return;
+        }
 
+        // Delete the image from Firebase Storage
+        StorageReference fileRef = storageRef.child(imageUID);
+        fileRef.delete().addOnSuccessListener(aVoid -> {
+            Log.d("Firebase Storage", "Image successfully deleted");
+        }).addOnFailureListener(e -> {
+            Log.d("Firebase Storage", "Error deleting image", e);
+        });
+    }
     /**
      * Gets the UID for the user
      *
@@ -477,6 +531,27 @@ public class User {
 //        this.UpdateAllDataFields();
         return phone;
     }
+
+    /**
+     * Gets the image string of the user
+     *
+     * @return The image string of the user
+     */
+    public String getImageUID() {
+        return imageUID;
+    }
+
+
+    /**
+     * Gets the FID of the user
+     *
+     * @return The FID of the user
+     */
+    public String getFid() {
+//        this.UpdateAllDataFields();
+        return fid;
+    }
+
 
     // ChatGPT: Now i want to do the reverse and load the image and convert it back to a bitmap
     public void getProfileImage(OnBitmapReceivedListener listener) {
