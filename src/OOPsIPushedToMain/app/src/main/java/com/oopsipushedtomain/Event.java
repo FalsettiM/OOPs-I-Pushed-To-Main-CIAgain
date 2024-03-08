@@ -13,7 +13,9 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -35,7 +37,10 @@ public class Event implements Serializable {
     private String posterUrl;
     private int attendeeLimit; // Optional
 
+    private List<String> signedUpAttendees;
+
     private String imageUID = null;
+
 
     // Database parameters
     private FirebaseFirestore db;
@@ -65,6 +70,7 @@ public class Event implements Serializable {
         this.location = location; // Optional
         this.posterUrl = posterUrl;
         this.attendeeLimit = attendeeLimit; // Optional
+        this.signedUpAttendees = new ArrayList<>(); // Initialize attendees list
     }
     public Event(String eventId, String title, String startTime, String endTime, String description, String location, String posterUrl, int attendeeLimit) {
         this.eventId = eventId;
@@ -75,6 +81,7 @@ public class Event implements Serializable {
         this.location = location; // Optional
         this.posterUrl = posterUrl;
         this.attendeeLimit = attendeeLimit; // Optional
+        this.signedUpAttendees = new ArrayList<>(); // Initialize attendees list
     }
 
 
@@ -119,6 +126,7 @@ public class Event implements Serializable {
         event.put("posterUrl", posterUrl);
         event.put("attendeeLimit", attendeeLimit);
         event.put("eventImage", imageUID);
+        event.put("signedUpAttendees", signedUpAttendees); // Include the attendees list
 
 
         db.collection("events").document(eventId).set(event)
@@ -264,6 +272,25 @@ public class Event implements Serializable {
     public void setAttendeeLimit(int attendeeLimit) {
         this.attendeeLimit = attendeeLimit;
     }
+
+    /**
+     * Gets the arrayList of signedUpAttendees ID for the event.
+     * @return the signedUpAttendees arrayList
+     */
+    public List<String> getSignedUpAttendees() {
+        return signedUpAttendees;
+    }
+
+    /**
+     * Sets the arrayList of signedUpAttendees ID for the event.
+     * @param signedUpAttendees the signedUpAttendees arrayList to set
+     */
+    public void setSignedUpAttendees(List<String> signedUpAttendees) {
+        this.signedUpAttendees = signedUpAttendees;
+    }
+
+
+
 
     // ChatGPT: Now i want to do the reverse and load the image and convert it back to a bitmap
     public void getEventImage(OnBitmapReceivedListener listener) {
