@@ -12,6 +12,7 @@ import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
@@ -22,6 +23,8 @@ public class MainActivity extends AppCompatActivity {
     Button userButton;
     View view;
 
+    ArrayList<String> annList;
+
     public void AfterDone() {
         Log.d("Firestore", user.getEmail());
         user.setProfileImage(Bitmap.createBitmap(view.getWidth(),view.getHeight(), Bitmap.Config.ARGB_8888 ));
@@ -29,7 +32,12 @@ public class MainActivity extends AppCompatActivity {
         user.getProfileImage(new User.OnBitmapReceivedListener() {
             @Override
             public void onBitmapReceived(Bitmap bitmap) {
+                annList = user.getAnnouncementsList();
 
+                // Print elements in list
+                for (String item : annList){
+                    Log.d("Firebase", item);
+                }
             }
         });
     }

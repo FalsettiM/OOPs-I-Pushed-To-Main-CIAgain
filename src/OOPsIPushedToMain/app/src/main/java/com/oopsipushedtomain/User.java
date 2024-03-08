@@ -31,6 +31,7 @@ import androidx.annotation.NonNull;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.Firebase;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
@@ -38,15 +39,18 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.oopsipushedtomain.ProfileActivity;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -80,9 +84,8 @@ public class User {
 
     private String imageUID = null;
 
-    // Annoucements
-    
-
+    // Announcements
+    private ArrayList<String> announcementsList;
 
     // Database parameters
     private FirebaseFirestore db;
@@ -128,6 +131,9 @@ public class User {
         // Initialize the database
         InitDatabase();
 
+        // Create array list
+        announcementsList = new ArrayList<>();
+
         // Get the user id of a new document
         uid = userRef.document().getId().toUpperCase();
         uid = "USER-" + uid;
@@ -171,11 +177,11 @@ public class User {
      * @param userID The UID of the user
      */
     public User(String userID, DataLoadedListener listener) {
-        // Set data loaded to false
-        dataLoaded = false;
-
         // Initialize database
         InitDatabase();
+
+        // Create array list
+        announcementsList = new ArrayList<>();
 
         // Set the document ID
         uid = userID;
@@ -211,7 +217,7 @@ public class User {
                         // Get the data from the query - there should only be 1 document
                         Map<String, Object> data = document.getData();
 
-                        // Update the object
+                        // Get Single element fields
                         assert data != null;
                         address = (String) data.get("address");
                         birthday = ((Timestamp) Objects.requireNonNull(data.get("birthday"))).toDate();
@@ -222,8 +228,27 @@ public class User {
                         phone = (String) data.get("phone");
                         imageUID = (String) data.get("profileImage");
 
-                        Log.d("Firebase", "Data Loaded");
+                        // Load the announcements
+                        // ChatGPT: How do I load an array list from firebase
+                        try {
+                            List<Object> rawList = (List<Object>) data.get("announcements");
+                            Log.d("Firebase", "Array list loading");
 
+                            // Convert each element a string
+                            if (rawList != null){
+                                for (Object item : rawList) {
+                                    if (item instanceof String) {
+                                        announcementsList.add((String) item);
+                                    }
+                                }
+                            }
+                        } catch (ClassCastException e) {
+                            Log.d("Firebase", "Array list loading failed");
+                        }
+
+
+                        // Inform complete
+                        Log.d("Firebase", "Data Loaded");
                         listener.onDataLoaded();
 
                     } else {
@@ -345,9 +370,6 @@ public class User {
 
     // ChatGPT: How can you upload an image to firebase?
     public void setProfileImage(Bitmap profileImage) {
-        // Update in the class
-        this.profileImage = profileImage;
-
         // Convert the bitmap to PNG for upload
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         profileImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
@@ -457,6 +479,10 @@ public class User {
         });
     }
 
+    public ArrayList<String> getAnnouncementsList(){
+        return announcementsList;
+    }
+
 
 
     /**
@@ -498,6 +524,9 @@ public class User {
                         data.put(eventID, internalMap);
                         checkInRef.update(data);
                     }
+
+                    // Subscribe the user to notifications
+                    FirebaseMessaging.getInstance().subscribeToTopic(eventID);
 
                 } else {
                     Log.d("Firebase Check In", "No such document");
