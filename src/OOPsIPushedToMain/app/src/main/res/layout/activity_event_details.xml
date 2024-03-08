@@ -134,10 +134,21 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:backgroundTint="#3F51B5"
-        android:text="Send Notification"
+        android:text="Send Announcement"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/event_details_organizer_event_stats" />
+
+    <Button
+        android:id="@+id/btnViewAnnouncements"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="#3F51B5"
+        android:text="View Announcements"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnSendNotification" />
 
     <Button
         android:id="@+id/btnViewLimitAttendees"
@@ -148,7 +159,7 @@
         android:text="View/Limit Attendees"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btnSendNotification" />
+        app:layout_constraintTop_toBottomOf="@id/btnViewAnnouncements" />
 
     <Button
         android:id="@+id/btnViewEventQRCode"

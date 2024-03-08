@@ -39,6 +39,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation(libs.firebase.messaging)
     implementation("androidx.navigation:navigation-fragment:2.7.7")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

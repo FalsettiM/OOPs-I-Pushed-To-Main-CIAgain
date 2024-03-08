@@ -16,6 +16,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.DialogFragment;
+import com.oopsipushedtomain.Announcements.AnnouncementListActivity;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -280,7 +281,6 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
                 startActivity(intent);
             }
         });
-
         scanQRCodeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
