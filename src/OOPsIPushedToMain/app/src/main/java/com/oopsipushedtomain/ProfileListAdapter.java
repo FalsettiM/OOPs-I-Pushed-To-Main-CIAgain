@@ -16,16 +16,25 @@ import java.util.List;
  * It binds the data to the RecyclerView and manages the ViewHolder.
  */
 public class ProfileListAdapter extends RecyclerView.Adapter<ProfileListAdapter.ProfileViewHolder> {
-    private List<Profile> profileList; // List to hold profile data
+    /**
+     * List to hold profile data
+     */
+    private List<Profile> profileList;
+    /**
+     * The context the adapter was called from
+     */
     private Context context;
 
+    /**
+     * The click listener for the list items
+     */
     private OnItemClickListener listener;
 
     /**
-     * Constructor for ProfileListAdapter.
-     *
-     * @param context     The context of the activity or fragment.
-     * @param profileList The list of Profile objects to be displayed.
+     * Constructor for the profile list adapter
+     * @param context The context it was called from
+     * @param profileList The list of profiles to show
+     * @param listener The listener to deal with clicking on an item
      */
     public ProfileListAdapter(Context context, List<Profile> profileList, OnItemClickListener listener) {
         this.context = context;
@@ -38,8 +47,15 @@ public class ProfileListAdapter extends RecyclerView.Adapter<ProfileListAdapter.
      */
     public class ProfileViewHolder extends RecyclerView.ViewHolder {
         // Assuming you have a TextView called textViewName as part of your item layout
+        /**
+         * The view to show the item name
+         */
         public TextView nameTextView;
 
+        /**
+         * The constructor
+         * @param itemView The view to show the item
+         */
         public ProfileViewHolder(View itemView) {
             super(itemView);
             nameTextView = itemView.findViewById(R.id.nameTextView);
@@ -62,7 +78,7 @@ public class ProfileListAdapter extends RecyclerView.Adapter<ProfileListAdapter.
      * @param parent   The ViewGroup into which the new View will be added after it is bound to
      *                 an adapter position.
      * @param viewType The view type of the new View.
-     * @return
+     * @return The ProfileViewHolder
      */
     @NonNull
     @Override

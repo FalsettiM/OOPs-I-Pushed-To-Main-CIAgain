@@ -21,18 +21,36 @@ import androidx.fragment.app.DialogFragment;
  */
 public class EditFieldDialogFragment extends DialogFragment {
 
+    /**
+     * The edit text shown for editing the data
+     */
     private EditText editTextValue;
+
+    /**
+     * The dialog listener for the edit field
+     */
+    EditFieldDialogListener listener;
 
     /**
      * An interface for defining the functions for performing an action when a button is pressed in the dialog
      */
     public interface EditFieldDialogListener {
+        /**
+         * Performs a function when the confirm button is pressed on the dialog
+         * @param dialog The dialog clicked
+         * @param fieldName The name of the field
+         * @param fieldValue The value of the field
+         */
         void onDialogPositiveClick(DialogFragment dialog, String fieldName, String fieldValue);
 
+        /**
+         * Performs a function when the cancel button is pressed on the dialog
+         * @param dialog The dialog clicked
+         */
         void onDialogNegativeClick(DialogFragment dialog);
     }
 
-    EditFieldDialogListener listener;
+
 
     /**
      * Displays the current value of the field in the dialog before allowing editing.

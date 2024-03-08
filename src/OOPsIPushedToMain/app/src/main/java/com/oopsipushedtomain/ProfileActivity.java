@@ -39,28 +39,54 @@ import java.util.Map;
  */
 public class ProfileActivity extends AppCompatActivity implements EditFieldDialogFragment.EditFieldDialogListener {
 
-    // Declare the user
+    /**
+     * Declare the user
+     */
     private User user;
 
-    // Declare a QRCode for scanning
+    /**
+     * Declare a QRCode for scanning
+     */
     private QRCode qrCode;
 
 
-    // Declare UI elements for labels and values
+    /**
+     * Declare UI elements for labels and values
+     */
     private TextView nameValue, nicknameValue, birthdayValue, homepageValue, addressValue, phoneNumberValue, emailValue;
+    /**
+     * Declare UI elements for buttons
+     */
     private Button eventsButton, scanQRCodeButton, adminButton;
+
+    /**
+     * Reference to the geo-location toggle
+     */
     private Switch toggleGeolocationSwitch;
 
+    /**
+     * The reference to the view of the profile image
+     */
     private View profileImageView;
+    /**
+     * The reference to the image drawable
+     */
     private Drawable defaultImage;
 
+    /**
+     * The UID of the user
+     */
     private String userId; // Get from bundle
 
 
-    // Activity result launcher for getting the result of the QRCodeScan
+    /**
+     * Activity result launcher for getting the result of the QRCodeScan
+     */
     private ActivityResultLauncher<Intent> qrCodeActivityResultLauncher;
 
-    // Getting the result from the camera
+    /**
+     * Getting the result from the camera
+     */
     private final ActivityResultLauncher<Intent> cameraResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -80,7 +106,9 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
             }
     );
 
-    // Getting the result from the photo gallery for image upload
+    /**
+     * Getting the result from the photo gallery for image upload
+     */
     private final ActivityResultLauncher<String> galleryResultLauncher = registerForActivityResult(
             new ActivityResultContracts.GetContent(),
             result -> {

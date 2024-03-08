@@ -8,13 +8,24 @@ import com.google.firebase.installations.FirebaseInstallations;
  * Helper function to quickly get the Firebase Installation ID (fid)
  */
 public final class GetFIDUtil {
+    /**
+     * General constructor
+     */
     private GetFIDUtil(){};
+
+    /**
+     * The fid of the user
+     */
     private static String fid = "";
 
     /**
      * Interface that allows for synchronization
      */
     public interface DataLoadedListener {
+        /**
+         * Sends the fid for the user to the calling function
+         * @param fid The user's FID
+         */
         void onDataLoaded(String fid);
     }
 
