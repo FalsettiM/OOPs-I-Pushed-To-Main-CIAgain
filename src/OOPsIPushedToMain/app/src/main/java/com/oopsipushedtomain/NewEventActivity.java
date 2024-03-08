@@ -47,6 +47,13 @@ public class NewEventActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_event);
 
+        initializeViews();
+
+        setupListeners();
+
+    }
+
+    private void initializeViews() {
         newEventTitleEdit = findViewById(R.id.new_event_title_e);
         newEventStartTimeEdit = findViewById(R.id.new_event_start_time_e);
         newEventEndTimeEdit = findViewById(R.id.new_event_end_time_e);
@@ -56,7 +63,9 @@ public class NewEventActivity extends AppCompatActivity {
 
         newEventStartTimeEdit.setOnClickListener(v -> showDateTimePicker(newEventStartTimeEdit));
         newEventEndTimeEdit.setOnClickListener(v -> showDateTimePicker(newEventEndTimeEdit));
+    }
 
+    private void setupListeners() {
         newEventPosterEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -72,27 +81,15 @@ public class NewEventActivity extends AppCompatActivity {
             String startTime = newEventStartTimeEdit.getText().toString();
             String endTime = newEventEndTimeEdit.getText().toString();
             String description = newEventDescriptionEdit.getText().toString();
-            // Assuming handling location, posterUrl, qrCodeData, and attendeeLimit elsewhere
-
-            Map<String, Object> event = new HashMap<>();
-            event.put("title", title);
-            event.put("startDateTime", startTime);
-            event.put("endDateTime", endTime);
-            event.put("details", description);
-            // Add other fields as necessary
-
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
-            db.collection("events").add(event)
-                    .addOnSuccessListener(documentReference -> {
-                        Toast.makeText(NewEventActivity.this, "Event added successfully", Toast.LENGTH_SHORT).show();
-                        // Navigate back to EventListActivity
-                        Intent intent = new Intent(NewEventActivity.this, EventListActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(intent);
-                    })
-                    .addOnFailureListener(e -> Toast.makeText(NewEventActivity.this, "Error adding event", Toast.LENGTH_SHORT).show());
+            // TODO: Add functionality for location, posterURL, attendeeLimit
+            Event newEvent = new Event(
+                    title, startTime, endTime, description, "testlocation", "testURL", 15);
+            newEvent.addEventToDatabase();
+            //Intent intent = new Intent(NewEventActivity.this, EventDetailsActivity.class);
+            //startActivity(intent);
         });
     }
+
     private void showDateTimePicker (final EditText editText){
         Calendar currentDate = Calendar.getInstance();
         new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
