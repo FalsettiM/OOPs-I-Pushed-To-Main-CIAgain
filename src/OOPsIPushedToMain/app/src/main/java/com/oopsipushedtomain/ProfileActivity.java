@@ -45,8 +45,7 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
     private TextView nameLabel, nicknameLabel, birthdayLabel, homepageLabel, addressLabel, phoneNumberLabel, emailLabel;
     private TextView nameValue, nicknameValue, birthdayValue, homepageValue, addressValue, phoneNumberValue, emailValue;
     private View profileImageView;
-    private static final int CAMERA_PERMISSION_REQUEST_CODE = 100;
-    private Button notificationsButton, eventsButton, announcementsButton, scanQRCodeButton;
+    private Button notificationsButton, eventsButton, announcementsButton, scanQRCodeButton, adminButton;
     private Switch toggleGeolocationSwitch;
     private FirebaseFirestore db;
     private String userId = "USER-0000000000"; // Get from bundle
@@ -190,7 +189,7 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
             db.collection("users").document(userId)
                     .update(update)
                     .addOnSuccessListener(aVoid -> Log.d("Firestore", "DocumentSnapshot successfully updated!"))
-                    .addOnFailureListener(e -> Log.w("Firestore", "Error updating document", e));
+                    .addOnFailureListener(e -> Log.w("Firestone", "Error updating document", e));
         }
     }
 
@@ -242,6 +241,7 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
         eventsButton = findViewById(R.id.eventsButton);
         announcementsButton = findViewById(R.id.announcementsButton);
         scanQRCodeButton = findViewById(R.id.scanQRCodeButton);
+        adminButton = findViewById(R.id.adminButton);
 
         // Initialize switch
         toggleGeolocationSwitch = findViewById(R.id.toggleGeolocationSwitch);
@@ -269,5 +269,13 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
                 startActivity(intent);
             }
         });
+        adminButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ProfileActivity.this, AdminActivity.class);
+                startActivity(intent);
+            }
+        });
+
     }
 }
