@@ -26,6 +26,9 @@
             android:name=".EventDetailsActivity"
             android:exported="false" />
         <activity
+            android:name=".NewEventActivity"
+            android:exported="false"/>
+        <activity
             android:name=".AdminActivity"
             android:exported="false" />
         <activity

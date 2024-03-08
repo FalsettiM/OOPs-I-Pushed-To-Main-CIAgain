@@ -2,10 +2,13 @@ package com.oopsipushedtomain;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
+import android.widget.PopupMenu;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -37,11 +40,58 @@ public class EventListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_event_list);
 
+        initializeViews();
+
+        setupListeners();
+    }
+
+    private void initializeViews() {
         eventDataList = new ArrayList<>();
         eventList = findViewById(R.id.EventListView);
         eventAdapter = new EventListAdapter(eventDataList, this);
         eventList.setAdapter(eventAdapter);
+    }
 
+    private void setupListeners() {
+        // Create Event button functionality
+        Button createEventButton = findViewById(R.id.create_event_button);
+        createEventButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Intent to navigate to the event creation activity
+                Intent intent = new Intent(EventListActivity.this, NewEventActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        // Sort Events button functionality
+        Button sortButton = findViewById(R.id.sort_events_button);
+        sortButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                PopupMenu popup = new PopupMenu(EventListActivity.this, v);
+                // Inflate the popup menu from a menu resource
+                popup.getMenuInflater().inflate(R.menu.event_sort_menu, popup.getMenu());
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    public boolean onMenuItemClick(MenuItem item) {
+                        // Handle menu item clicks here
+                        int itemId = item.getItemId();
+                        if (itemId == R.id.sort_by_all_events) {
+                            // TODO: Handle sorting given the users corrsponding events
+                        } else if (itemId == R.id.sort_by_signed_up) {
+
+                        } else if (itemId == R.id.sort_by_user_event) {
+
+                        }
+                        // Optionally, update your ListView adapter to reflect the sorting
+                        return true;
+                    }
+                });
+                popup.show(); // Show the popup menu
+            }
+        });
+
+        // Click on an event in the list functionality
         eventList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -83,6 +133,5 @@ public class EventListActivity extends AppCompatActivity {
             }
         });
     }
-
 
 }
