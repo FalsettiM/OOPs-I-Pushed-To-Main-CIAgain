@@ -17,9 +17,9 @@ import com.oopsipushedtomain.R;
 import java.util.ArrayList;
 
 /**
- * This activity obtains and displays a list of announcements sent to the user. The userId is
+ * This activity obtains and displays a list of announcements sent for that even. The eventId is
  * passed to this activity through an Intent, which is then used to get a list of their
- * announcements via the 'announcements' field in the 'users' collection. The 'announcements'
+ * announcements via the 'announcements' field in the 'events' collection. The 'announcements'
  * collection is then queried using this list to get all the announcement details.
  * @author  Aidan Gironella
  * @see     Announcement
@@ -32,9 +32,9 @@ public class AnnouncementListActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private DocumentReference announcementRef;
     private Event selectedEvent;
-    private String userId;
+    private String eventId;
     private ArrayList<String> announcements;
-    private final String TAG = "UserAnnouncements";
+    private final String TAG = "EventAnnouncements";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,11 +50,11 @@ public class AnnouncementListActivity extends AppCompatActivity {
 
         // Get intent data
         Intent intent = getIntent();
-        userId = intent.getStringExtra("userId");
+        eventId = intent.getStringExtra("eventId");
 
-        // Initialize Firestore instance and get the user's announcements
+        // Initialize Firestore instance and get the event's announcements
         db = FirebaseFirestore.getInstance();
-        getUserAnnouncements();
+        getEventAnnouncements();
         addListeners();
     }
 
@@ -78,28 +78,28 @@ public class AnnouncementListActivity extends AppCompatActivity {
     }
 
     /**
-     * First gets the user's announcements from the 'announcements' field in 'users', then
+     * First gets the event's announcements from the 'announcements' field in 'events', then
      * converts that to an ArrayList that we can use. Next, iterate over the ArrayList and get the
      * individual announcements from the 'announcements' collection.
      */
-    private void getUserAnnouncements() {
-        // Find the user in the 'users' collection
-        DocumentReference userAnnouncementsRef = db.collection("users").document(userId);
-        userAnnouncementsRef.get().addOnCompleteListener(getUserTask -> {
-            if (getUserTask.isSuccessful()) {
-                DocumentSnapshot userDocument = getUserTask.getResult();
-                if (userDocument.exists()) {  // This means we successfully found the user
-                    Log.d(TAG, "Found user document");
+    private void getEventAnnouncements() {
+        // Find the event in the 'events' collection
+        DocumentReference eventRef = db.collection("events").document(eventId);
+        eventRef.get().addOnCompleteListener(getEventTask -> {
+            if (getEventTask.isSuccessful()) {
+                DocumentSnapshot eventDocument = getEventTask.getResult();
+                if (eventDocument.exists()) {  // This means we successfully found the event
+                    Log.d(TAG, "Found event document");
 
-                    // Get the array of 'announcements' from the 'user' document
-                    announcements = (ArrayList<String>) userDocument.get("announcements");
+                    // Get the array of 'announcements' from the 'event' document
+                    announcements = (ArrayList<String>) eventDocument.get("announcements");
                     announcementListAdapter.clear();
 
-                    // Iterate over the announcements we found for that user
+                    // Iterate over the announcements we found for that event
                     for (String announcement: announcements) {
                         Log.d(TAG, announcement);
 
-                        // Take the announcement UID and find that announcement from the
+                        // Take the announcement UID and find that announcement in the
                         // 'announcements' collection
                         announcementRef = db.collection("announcements").document(announcement);
                         announcementRef.get().addOnCompleteListener(getAnnouncementTask -> {
@@ -110,8 +110,8 @@ public class AnnouncementListActivity extends AppCompatActivity {
                                     announcementListAdapter.notifyDataSetChanged();
                                 } else {
                                     Log.e(TAG,
-                                            String.format("Could not find announcement %s for user %s",
-                                                    announcementDoc, userId));
+                                            String.format("Could not find announcement %s for event %s",
+                                                    announcementDoc, eventId));
                                 }
                             } else {
                                 Log.e(TAG, "Get individual announcement task failed, ",
@@ -120,11 +120,11 @@ public class AnnouncementListActivity extends AppCompatActivity {
                         });
                     }
                 } else {
-                    Log.e(TAG, "Could not find user's announcements");
+                    Log.e(TAG, "Could not find event's announcements");
                 }
             } else {
-                Log.e(TAG, "Get user announcements task failed, ",
-                        getUserTask.getException());
+                Log.e(TAG, "Get event announcements task failed, ",
+                        getEventTask.getException());
             }
         });
     }

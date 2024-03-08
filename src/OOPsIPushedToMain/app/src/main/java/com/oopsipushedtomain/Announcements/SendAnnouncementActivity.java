@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.oopsipushedtomain.R;
@@ -67,6 +68,10 @@ public class SendAnnouncementActivity extends AppCompatActivity {
         setListeners();
     }
 
+    /**
+     * This method receives an event ID from the Intent, and uses it to set eventRef. The database
+     * is then queried to find the event in the 'events' collection
+     */
     private void getEvent() {
         // TODO: Integration - in Ningze EventDetailsActivityOrganizer.java, on line 108 (or inside
         //  btnSendNotification setOnClickListener, before startActivity), add this line:
@@ -83,9 +88,9 @@ public class SendAnnouncementActivity extends AppCompatActivity {
                     Log.e(TAG, String.format("Found event %s", eventTitle));
                     eventTitleE.setText(eventTitle);
 
-                    // TODO - testing, delete
-                    FirebaseMessaging.getInstance().subscribeToTopic(eventDoc.getId());
-                    Log.e(TAG, "Subscribed to topic " + eventDoc.getId());
+                    // TODO: testing, delete
+//                    FirebaseMessaging.getInstance().subscribeToTopic(eventDoc.getId());
+//                    Log.e(TAG, "Subscribed to topic " + eventDoc.getId());
                 } else {
                     Log.e(TAG,
                             String.format("Could not find event %s", eventId));
@@ -180,5 +185,6 @@ public class SendAnnouncementActivity extends AppCompatActivity {
                     Log.d("Announcement", "Announcement could not be sent to DB" + e);
                     Toast.makeText(getBaseContext(), "Error: Your announcement could not be sent", Toast.LENGTH_LONG).show();
                 });
+        eventRef.update("announcements", FieldValue.arrayUnion("ANMT-" + uid));
     }
 }

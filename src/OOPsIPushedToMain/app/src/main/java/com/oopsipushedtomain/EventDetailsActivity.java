@@ -14,6 +14,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.oopsipushedtomain.Announcements.AnnouncementListActivity;
 import com.oopsipushedtomain.Announcements.SendAnnouncementActivity;
 
 import java.text.SimpleDateFormat;
@@ -46,7 +47,7 @@ public class EventDetailsActivity extends AppCompatActivity {
     private EditText eventEndTimeEdit;
     private EditText eventDescriptionEdit;
     private ImageView eventPosterEdit;
-    private Button eventSaveButton, sendNotificationButton;
+    private Button eventSaveButton, sendNotificationButton, viewAnnouncementsButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +61,7 @@ public class EventDetailsActivity extends AppCompatActivity {
         eventPosterEdit = findViewById(R.id.eventPosterImageViewEdit);
         eventSaveButton = findViewById(R.id.btnSaveEventDetails);
         sendNotificationButton = findViewById(R.id.btnSendNotification);
+        viewAnnouncementsButton = findViewById(R.id.btnViewAnnouncements);
 
         eventStartTimeEdit.setOnClickListener(v -> showDateTimePicker(eventStartTimeEdit));
         eventEndTimeEdit.setOnClickListener(v -> showDateTimePicker(eventEndTimeEdit));
@@ -99,8 +101,14 @@ public class EventDetailsActivity extends AppCompatActivity {
             }
         });
 
-        findViewById(R.id.btnSendNotification).setOnClickListener(v -> {
+        sendNotificationButton.setOnClickListener(v -> {
             Intent intent = new Intent(EventDetailsActivity.this, SendAnnouncementActivity.class);
+            intent.putExtra("eventId", event.getEventId());
+            startActivity(intent);
+        });
+
+        viewAnnouncementsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(EventDetailsActivity.this, AnnouncementListActivity.class);
             intent.putExtra("eventId", event.getEventId());
             startActivity(intent);
         });

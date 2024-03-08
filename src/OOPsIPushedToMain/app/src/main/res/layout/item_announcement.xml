@@ -43,7 +43,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="18sp"
                 android:padding="4dp"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="20dp"
                 android:text="Announcement Body" />
 
         </LinearLayout>
