@@ -50,9 +50,12 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
     private TextView nameValue, nicknameValue, birthdayValue, homepageValue, addressValue, phoneNumberValue, emailValue;
     private Button eventsButton, scanQRCodeButton, adminButton;
     private Switch toggleGeolocationSwitch;
-    private String userId = "USER-0000000000"; // Get from bundle
+
     private View profileImageView;
     private Drawable defaultImage;
+
+    private String userId; // Get from bundle
+
 
     // Activity result launcher for getting the result of the QRCodeScan
     private ActivityResultLauncher<Intent> qrCodeActivityResultLauncher;
@@ -114,6 +117,7 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
         setContentView(R.layout.activity_profile);
 
         // Load the information about the given user
+        userId = getIntent().getStringExtra("userId");
         user = new User(userId, new User.DataLoadedListener() {
             @Override
             public void onDataLoaded() {
