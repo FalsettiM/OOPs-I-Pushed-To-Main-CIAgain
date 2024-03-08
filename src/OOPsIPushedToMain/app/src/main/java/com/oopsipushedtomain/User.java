@@ -61,6 +61,10 @@ import java.util.concurrent.Executors;
 /**
  * This class defines and represents a user
  * It also includes all database accesses for user functions
+ * <p>
+ * Outstanding Issues:
+ * - Need to implement more error checking
+ * - Need to implement a delete function
  *
  * @author Matteo Falsetti
  * @version 1.0
@@ -68,41 +72,92 @@ import java.util.concurrent.Executors;
  * @see ProfileActivity
  */
 public class User {
-
-    boolean dataLoaded = false;
-    CountDownLatch latch;
-
     // User parameters
+    /**
+     * The UID of the user
+     */
     private String uid;
+    /**
+     * The address of the user
+     * It says hi when you create a new account
+     */
     private String address = "Hello";
+    /**
+     * The birthday of the user
+     */
     private Date birthday = null;
+    /**
+     * The email of the user
+     */
     private String email = null;
+    /**
+     * The homepage of the user
+     */
     private String homepage = null;
+    /**
+     * The full name of the user
+     */
     private String name = null;
+    /**
+     * The nickname of the user
+     */
     private String nickname = null;
+    /**
+     * The phone number of the user
+     */
     private String phone = null;
 
+    /**
+     * The UID of the user's profile picture
+     */
     private String imageUID = null;
+    /**
+     * The Firebase Installation ID (fid)
+     */
     private String fid = null;
 
     // Announcements
+    /**
+     * The array list to store annoncements for this user
+     */
     private ArrayList<String> announcementsList;
 
     // Database parameters
+    /**
+     * A reference to the Firestore database
+     */
     private FirebaseFirestore db;
+    /**
+     * A reference to the users collection
+     */
     private CollectionReference userRef;
+    /**
+     * A reference to the doucment for this user
+     */
     private DocumentReference userDocRef;
+    /**
+     * A reference to the events collection for each user
+     */
     private CollectionReference userEventRef;
 
 
     // Firebase storage
+    /**
+     * A reference to Firebase Storage
+     */
     private FirebaseStorage storage;
+    /**
+     * A reference to the storage pool for images
+     */
     private StorageReference storageRef;
 
     /**
      * Interface for checking when data is loaded into the user
      */
     public interface DataLoadedListener {
+        /**
+         * Call back for when data is loaded into the user
+         */
         void onDataLoaded();
     }
 
@@ -110,6 +165,10 @@ public class User {
      * Interface for checking when a new user is created
      */
     public interface UserCreatedListener {
+        /**
+         * Callback for passing back the created user when creating a new user
+         * @param user The new user that was created
+         */
         void onDataLoaded(User user);
     }
 
@@ -117,6 +176,10 @@ public class User {
      * Interface for checking when the image is loaded from the database
      */
     public interface OnBitmapReceivedListener {
+        /**
+         * Callback for passing back the user's profile picture when it was received
+         * @param bitmap The received bitmap
+         */
         void onBitmapReceived(Bitmap bitmap);
     }
 
@@ -134,6 +197,8 @@ public class User {
     /**
      * Generates a new user and uploads them to the database
      * Instantiates all parameters to null. They need to be set later
+     *
+     * @param listener The listener for determining when the transfer is complete
      */
     public User(UserCreatedListener listener) {
         // Initialize the database
@@ -189,9 +254,11 @@ public class User {
     }
 
     /**
-     * Creates an instance of the new user class given a UID
+     * Creates an instance of the new user class given a UID.
+     * Loads the data from the database
      *
-     * @param userID The UID of the user
+     * @param userID   The UID of the user to find in the database
+     * @param listener Listener for checking when file transfer is complete
      */
     public User(String userID, DataLoadedListener listener) {
         // Initialize database
@@ -222,6 +289,8 @@ public class User {
     /**
      * Updates all fields in the class
      * Needs to be called before getting any data
+     *
+     * @param listener Listener for checking when data transfer is complete
      */
     public void UpdateAllDataFields(DataLoadedListener listener) {
         // Get the data in the document
@@ -433,9 +502,9 @@ public class User {
         });
     }
     // ChatGPT: How can you delete an image to firebase storage?
+
     /**
      * Deletes the user's profile image in the database
-     *
      */
     public void deleteProfileImage() {
         // Check if there is an image to delete
@@ -452,6 +521,7 @@ public class User {
             Log.d("Firebase Storage", "Error deleting image", e);
         });
     }
+
     /**
      * Gets the UID for the user
      *
@@ -554,6 +624,12 @@ public class User {
 
 
     // ChatGPT: Now i want to do the reverse and load the image and convert it back to a bitmap
+
+    /**
+     * Gets the users profile image from the database.
+     * The Bitmap profile image is passed out through the listener
+     * @param listener The listener to to see when data transfer is finished
+     */
     public void getProfileImage(OnBitmapReceivedListener listener) {
         if (imageUID == null || imageUID.isEmpty()) {
             Log.d("User", "No imageUID available for user: " + uid);
@@ -604,9 +680,7 @@ public class User {
                         String countField = eventID + ".count";
 
                         // Update the count
-                        checkInRef.update(
-                                countField, FieldValue.increment(1)
-                        );
+                        checkInRef.update(countField, FieldValue.increment(1));
 
                     } else {
                         // Event does not already exist, make a new event

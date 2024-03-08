@@ -20,10 +20,19 @@ import java.util.List;
  */
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> {
     // List holding the image information objects.
+    /**
+     * The list to store the info for each image
+     */
     private List<ImageInfo> imageInfos;
     // Context in which the adapter is operating.
+    /**
+     * The context the adapter was called from
+     */
     private Context context;
     // Listener for handling click events on items.
+    /**
+     * The click listener for the item in the list
+     */
     private OnItemClickListener listener;
 
     /**
@@ -32,6 +41,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     public interface OnItemClickListener {
         /**
          * Called when an item has been clicked.
+         *
          * @param position The position of the item in the adapter that was clicked.
          */
         void onItemClick(int position);
@@ -40,9 +50,9 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     /**
      * Constructs a new ImageAdapter.
      *
-     * @param context The current context.
+     * @param context    The current context.
      * @param imageInfos A list of ImageInfo objects to be displayed.
-     * @param listener A listener to respond to item click events.
+     * @param listener   A listener to respond to item click events.
      */
     public ImageAdapter(Context context, List<ImageInfo> imageInfos, OnItemClickListener listener) {
         this.context = context;
@@ -53,7 +63,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     /**
      * Called when RecyclerView needs a new {@link ViewHolder} of the given type to represent an item.
      *
-     * @param parent The ViewGroup into which the new View will be added after it is bound to an adapter position.
+     * @param parent   The ViewGroup into which the new View will be added after it is bound to an adapter position.
      * @param viewType The view type of the new View.
      * @return A new ViewHolder that holds a View of the given view type.
      */
@@ -67,7 +77,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     /**
      * Called by RecyclerView to display the data at the specified position.
      *
-     * @param holder The ViewHolder which should be updated to represent the contents of the item at the given position in the data set.
+     * @param holder   The ViewHolder which should be updated to represent the contents of the item at the given position in the data set.
      * @param position The position of the item within the adapter's data set.
      */
     @Override
@@ -92,6 +102,9 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
      */
     public static class ViewHolder extends RecyclerView.ViewHolder {
         // ImageView for displaying the image.
+        /**
+         * The view for the image
+         */
         ImageView imageView;
 
         /**

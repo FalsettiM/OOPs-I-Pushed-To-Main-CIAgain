@@ -20,20 +20,58 @@ import java.util.ArrayList;
  * passed to this activity through an Intent, which is then used to get a list of their
  * announcements via the 'announcements' field in the 'events' collection. The 'announcements'
  * collection is then queried using this list to get all the announcement details.
- * @author  Aidan Gironella
- * @see     Announcement
- * @see     AnnouncementListAdapter
+ *
+ * @author Aidan Gironella
+ * @see Announcement
+ * @see AnnouncementListAdapter
  */
 public class AnnouncementListActivity extends AppCompatActivity {
+    /**
+     * The view that shows the list of announcements
+     */
     private ListView announcementList;
+    /**
+     * The list of announcement
+     */
     private ArrayList<Announcement> announcementDataList;
+    /**
+     * The adapter to show the announcement in the ListView
+     */
     private AnnouncementListAdapter announcementListAdapter;
+
+    /**
+     * A reference to the Firestore database
+     */
     private FirebaseFirestore db;
+
+    /**
+     * A reference to the announcements document
+     */
     private DocumentReference announcementRef;
+
+    /**
+     * The event ID of the announcement
+     */
     private String eventId;
+
+    /**
+     * An list of all the announcement stored as strings
+     */
     private ArrayList<String> announcements;
+
+    /**
+     * The tag for Log output
+     */
     private final String TAG = "EventAnnouncements";
 
+    /**
+     * Creates and instantiates the activity
+     * Finds the views and sets the adapter for the ListView
+     *
+     * @param savedInstanceState If the activity is being re-initialized after
+     *                           previously being shut down then this Bundle contains the data it most
+     *                           recently supplied in {@link #onSaveInstanceState}.  <b><i>Note: Otherwise it is null.</i></b>
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -91,13 +129,10 @@ public class AnnouncementListActivity extends AppCompatActivity {
                                         announcementDataList.add(announcementDoc.toObject(Announcement.class));
                                         announcementListAdapter.notifyDataSetChanged();
                                     } else {
-                                        Log.e(TAG,
-                                                String.format("Could not find announcement %s for event %s",
-                                                        announcementDoc, eventId));
+                                        Log.e(TAG, String.format("Could not find announcement %s for event %s", announcementDoc, eventId));
                                     }
                                 } else {
-                                    Log.e(TAG, "Get individual announcement task failed, ",
-                                            getAnnouncementTask.getException());
+                                    Log.e(TAG, "Get individual announcement task failed, ", getAnnouncementTask.getException());
                                 }
                             });
                         }
@@ -106,8 +141,7 @@ public class AnnouncementListActivity extends AppCompatActivity {
                     Log.e(TAG, "Could not find event's announcements");
                 }
             } else {
-                Log.e(TAG, "Get event announcements task failed, ",
-                        getEventTask.getException());
+                Log.e(TAG, "Get event announcements task failed, ", getEventTask.getException());
             }
         });
     }

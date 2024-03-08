@@ -16,15 +16,25 @@ import java.util.List;
  * It binds the data to the RecyclerView and manages the ViewHolder.
  */
 public class ProfileListAdapter extends RecyclerView.Adapter<ProfileListAdapter.ProfileViewHolder> {
-    private List<Profile> profileList; // List to hold profile data
+    /**
+     * List to hold profile data
+     */
+    private List<Profile> profileList;
+    /**
+     * The context the adapter was called from
+     */
     private Context context;
 
+    /**
+     * The click listener for the list items
+     */
     private OnItemClickListener listener;
 
     /**
-     * Constructor for ProfileListAdapter.
-     * @param context The context of the activity or fragment.
-     * @param profileList The list of Profile objects to be displayed.
+     * Constructor for the profile list adapter
+     * @param context The context it was called from
+     * @param profileList The list of profiles to show
+     * @param listener The listener to deal with clicking on an item
      */
     public ProfileListAdapter(Context context, List<Profile> profileList, OnItemClickListener listener) {
         this.context = context;
@@ -37,8 +47,15 @@ public class ProfileListAdapter extends RecyclerView.Adapter<ProfileListAdapter.
      */
     public class ProfileViewHolder extends RecyclerView.ViewHolder {
         // Assuming you have a TextView called textViewName as part of your item layout
+        /**
+         * The view to show the item name
+         */
         public TextView nameTextView;
 
+        /**
+         * The constructor
+         * @param itemView The view to show the item
+         */
         public ProfileViewHolder(View itemView) {
             super(itemView);
             nameTextView = itemView.findViewById(R.id.nameTextView);
@@ -55,6 +72,14 @@ public class ProfileListAdapter extends RecyclerView.Adapter<ProfileListAdapter.
         }
     }
 
+    /**
+     * Inflates the layout and creates a new ProfileViewHolder
+     *
+     * @param parent   The ViewGroup into which the new View will be added after it is bound to
+     *                 an adapter position.
+     * @param viewType The view type of the new View.
+     * @return The ProfileViewHolder
+     */
     @NonNull
     @Override
     public ProfileViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -63,6 +88,13 @@ public class ProfileListAdapter extends RecyclerView.Adapter<ProfileListAdapter.
         return new ProfileViewHolder(itemView);
     }
 
+    /**
+     * When the view is bound, set the text in the view
+     *
+     * @param holder   The ViewHolder which should be updated to represent the contents of the
+     *                 item at the given position in the data set.
+     * @param position The position of the item within the adapter's data set.
+     */
     @Override
     public void onBindViewHolder(@NonNull ProfileViewHolder holder, int position) {
         Profile profile = profileList.get(position);
@@ -70,6 +102,11 @@ public class ProfileListAdapter extends RecyclerView.Adapter<ProfileListAdapter.
         // Set other details to views as needed
     }
 
+    /**
+     * Gets the number of profiles in the list
+     *
+     * @return The number of profiles in the list
+     */
     @Override
     public int getItemCount() {
         return profileList.size(); // Return the size of the profileList

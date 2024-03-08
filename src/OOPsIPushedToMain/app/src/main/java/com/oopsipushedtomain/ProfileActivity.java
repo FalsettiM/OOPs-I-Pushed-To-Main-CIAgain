@@ -35,31 +35,58 @@ import java.util.Map;
 
 /**
  * Activity for displaying and editing an attendee's profile.
- * This class allows for interaction with Firebase Firestore to retrieve and update user data.
+ * Also sets the on click listeners for the buttons on the profile page
  */
 public class ProfileActivity extends AppCompatActivity implements EditFieldDialogFragment.EditFieldDialogListener {
 
-    // Declare the user
+    /**
+     * Declare the user
+     */
     private User user;
 
-    // Declare a QRCode for scanning
+    /**
+     * Declare a QRCode for scanning
+     */
     private QRCode qrCode;
 
 
-    // Declare UI elements for labels and values
+    /**
+     * Declare UI elements for labels and values
+     */
     private TextView nameValue, nicknameValue, birthdayValue, homepageValue, addressValue, phoneNumberValue, emailValue;
+    /**
+     * Declare UI elements for buttons
+     */
     private Button eventsButton, scanQRCodeButton, adminButton;
+
+    /**
+     * Reference to the geo-location toggle
+     */
     private Switch toggleGeolocationSwitch;
 
+    /**
+     * The reference to the view of the profile image
+     */
     private View profileImageView;
+    /**
+     * The reference to the image drawable
+     */
     private Drawable defaultImage;
 
+    /**
+     * The UID of the user
+     */
     private String userId; // Get from bundle
 
 
-    // Activity result launcher for getting the result of the QRCodeScan
+    /**
+     * Activity result launcher for getting the result of the QRCodeScan
+     */
     private ActivityResultLauncher<Intent> qrCodeActivityResultLauncher;
 
+    /**
+     * Getting the result from the camera
+     */
     private final ActivityResultLauncher<Intent> cameraResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -79,6 +106,9 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
             }
     );
 
+    /**
+     * Getting the result from the photo gallery for image upload
+     */
     private final ActivityResultLauncher<String> galleryResultLauncher = registerForActivityResult(
             new ActivityResultContracts.GetContent(),
             result -> {
@@ -125,6 +155,8 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
                 initializeViews();
             }
         });
+
+        CustomFirebaseAuth.getInstance().signIn(userId);  // a mock-up sign in feature
 
         // Initialize UI elements and load attendee data
         initializeViews();
@@ -267,11 +299,10 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
      * Handles the positive click action from the edit field dialog.
      * Updates the corresponding profile field with the new value entered by the user.
      *
-     * @param dialog
-     * @param fieldName
-     * @param fieldValue
+     * @param dialog The dialog that was clicked on
+     * @param fieldName The field name that was clicked on
+     * @param fieldValue The value of the dialog
      */
-
     @Override
     public void onDialogPositiveClick(DialogFragment dialog, String fieldName, String fieldValue) {
 
@@ -320,7 +351,7 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
     /**
      * Handles the positive click action from the edit field dialog.
      *
-     * @param dialog
+     * @param dialog The dialog that was clicked on
      */
     @Override
     public void onDialogNegativeClick(DialogFragment dialog) {
@@ -330,8 +361,8 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
     /**
      * Shows the edit field dialog for a field on the page using its current value
      *
-     * @param fieldName
-     * @param fieldValue
+     * @param fieldName The field we are editing
+     * @param fieldValue The value of the field
      */
     public void showEditFieldDialog(String fieldName, String fieldValue) {
         DialogFragment dialog = new EditFieldDialogFragment();

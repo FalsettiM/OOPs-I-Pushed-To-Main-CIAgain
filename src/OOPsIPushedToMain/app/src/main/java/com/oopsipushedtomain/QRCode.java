@@ -27,27 +27,58 @@ import java.util.Map;
 
 
 /**
- * This class will hold a QR code.
- * It will contain the bitmap image as well as functions to generate and read a code
+ * Represents an QR code within the application.
+ * This class is used to model QR codes, including their details such as string and the UIDs linking them to their image and
+ * what they are linked to, start and end times.
+ *
+ * <p>
+ * Outstanding issues:
+ * - Need to implement a delete function to remove it from the database
  */
 public class QRCode {
     // Storing the string and bitmap of the qrcode
+    /**
+     * The string associated with this QR Code
+     */
     private String qrString;
+    /**
+     * The UID of this QR Code
+     */
     private String qrCodeUID;
 
-
+    /**
+     * The UID of the image associated with this QR code
+     */
     private String imageUID;
 
+    /**
+     * The Bitmap image of this QR code
+     */
     private Bitmap qrCodeImage = null;
 
     // Database parameters
+    /**
+     * A reference to the Firestore database
+     */
     private FirebaseFirestore db;
+    /**
+     * A reference to the QR codes collection
+     */
     private CollectionReference qrCodeRef;
+    /**
+     * A reference to the document correspoinding to this qr code
+     */
     private DocumentReference qrCodeDocRef;
 
 
     // Firebase storage
+    /**
+     * A reference to the Firebase Storage
+     */
     private FirebaseStorage storage;
+    /**
+     * A reference to the storage pool for images
+     */
     private StorageReference storageRef;
 
 
@@ -55,6 +86,9 @@ public class QRCode {
      * Interface for checking when data is loaded into the qrcode
      */
     public interface DataLoadedListener {
+        /**
+         * Callback for when data is loaded
+         */
         void onDataLoaded();
     }
 
@@ -62,6 +96,10 @@ public class QRCode {
      * Interface for checking when the image is loaded from the database
      */
     public interface OnBitmapReceivedListener {
+        /**
+         * Call back to pass the received Bitmap back to the calling function
+         * @param bitmap The bitmap to pass
+         */
         void onBitmapReceived(Bitmap bitmap);
     }
 
@@ -69,6 +107,10 @@ public class QRCode {
      * Interface for checking when there is a new code loaded into the class
      */
     public interface NewCodeListener {
+        /**
+         * Callback for when the qr code data is recieved
+         * Now the image can be fetched
+         */
         void onDataInitialized();
     }
 

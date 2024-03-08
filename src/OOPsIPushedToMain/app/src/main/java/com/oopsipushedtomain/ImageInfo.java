@@ -8,17 +8,25 @@ import android.graphics.Bitmap;
  */
 public class ImageInfo {
     // The Bitmap representation of the image.
+    /**
+     * The Bitmap of the image
+     */
     private Bitmap image;
     // The storage path of the image in Firebase Storage.
+    /**
+     * The path to the image in Firebase Storage
+     */
     private String storagePath;
-    // The Firestore document ID associated with the image, if any.
+    /**
+     * The image UID associated with the image
+     */
     private String firestoreDocumentId;
 
     /**
      * Constructs a new ImageInfo instance.
      *
-     * @param image The Bitmap representation of the image.
-     * @param storagePath The storage path of the image in Firebase Storage.
+     * @param image               The Bitmap representation of the image.
+     * @param storagePath         The storage path of the image in Firebase Storage.
      * @param firestoreDocumentId The Firestore document ID associated with the image. This parameter is optional and can be null.
      */
     public ImageInfo(Bitmap image, String storagePath, String firestoreDocumentId) {

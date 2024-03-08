@@ -24,24 +24,49 @@ import java.util.Map;
  * NewEventActivity facilitates the creation of new events by organizers. It provides a form
  * for inputting event details such as the event title, start time, end time, and description.
  * Additionally, it offers an ImageView placeholder for future functionality to add an event poster.
- *
+ * <p>
  * Upon filling the form and clicking the 'create' button, the new event is intended to be added
  * to the event list, and the organizer is navigated back to the EventListActivity where the new event
  * will be displayed.
- *
+ * <p>
  * Outstanding issues:
  * 1. The event poster functionality is not yet implemented.
  */
 
 public class NewEventActivity extends AppCompatActivity {
 
+    /**
+     * The view of the event title
+     */
     private EditText newEventTitleEdit;
+    /**
+     * The view of the event start time
+     */
     private EditText newEventStartTimeEdit;
+    /**
+     * The view of the event end time
+     */
     private EditText newEventEndTimeEdit;
+    /**
+     * The view of the event end time
+     */
     private EditText newEventDescriptionEdit;
+    /**
+     * The view of the event poster
+     */
     private ImageView newEventPosterEdit;
+    /**
+     * The reference to the create event button
+     */
     private Button newEventCreateButton;
 
+    /**
+     * Initializes all parameters of this class including the click listeners and database
+     *
+     * @param savedInstanceState If the activity is being re-initialized after
+     *                           previously being shut down then this Bundle contains the data it most
+     *                           recently supplied in {@link #onSaveInstanceState}.  <b><i>Note: Otherwise it is null.</i></b>
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,6 +78,9 @@ public class NewEventActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * Sets all of the references to views in the class
+     */
     private void initializeViews() {
         newEventTitleEdit = findViewById(R.id.new_event_title_e);
         newEventStartTimeEdit = findViewById(R.id.new_event_start_time_e);
@@ -65,6 +93,9 @@ public class NewEventActivity extends AppCompatActivity {
         newEventEndTimeEdit.setOnClickListener(v -> showDateTimePicker(newEventEndTimeEdit));
     }
 
+    /**
+     * Sets all of the on click listeners for the class
+     */
     private void setupListeners() {
         newEventPosterEdit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -82,15 +113,20 @@ public class NewEventActivity extends AppCompatActivity {
             String endTime = newEventEndTimeEdit.getText().toString();
             String description = newEventDescriptionEdit.getText().toString();
             // TODO: Add functionality for location, posterURL, attendeeLimit
-            Event newEvent = new Event(
-                    title, startTime, endTime, description, "testlocation", "testURL", 15);
+            Event newEvent = new Event(title, startTime, endTime, description, "testlocation", "testURL", 15);
             newEvent.addEventToDatabase();
+            finish();
             //Intent intent = new Intent(NewEventActivity.this, EventDetailsActivity.class);
             //startActivity(intent);
         });
     }
 
-    private void showDateTimePicker (final EditText editText){
+    /**
+     * Shows a date time picker
+     *
+     * @param editText The edit text you are editing
+     */
+    private void showDateTimePicker(final EditText editText) {
         Calendar currentDate = Calendar.getInstance();
         new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
             Calendar time = Calendar.getInstance();

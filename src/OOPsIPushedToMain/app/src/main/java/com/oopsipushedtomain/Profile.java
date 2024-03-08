@@ -4,15 +4,42 @@
  */
 package com.oopsipushedtomain;
 
+/**
+ * Represents an profile for the admin page
+ */
 public class Profile {
-    private String userId;      // The unique identifier for the user
-    private String name;        // The full name of the user
-    private String nickname;    // The nickname or alias of the user
-    private String birthday;    // The birthday of the user (format: yyyy-MM-dd)
-    private String homepage;    // The URL of the user's homepage or website
-    private String address;     // The physical address of the user
-    private String phone;       // The phone number of the user
-    private String email;       // The email address of the user
+    /**
+     * The unique identifier for the user
+     */
+    private String userId;
+    /**
+     * The full name of the user
+     */
+    private String name;
+    /**
+     * The nickname or alias of the user
+     */
+    private String nickname;
+    /**
+     * The birthday of the user (format: yyyy-MM-dd)
+     */
+    private String birthday;
+    /**
+     * The URL of the user's homepage or website
+     */
+    private String homepage;
+    /**
+     * The physical address of the user
+     */
+    private String address;
+    /**
+     * The phone number of the user
+     */
+    private String phone;
+    /**
+     * The email address of the user
+     */
+    private String email;
 
     /**
      * Default constructor for the Profile class.

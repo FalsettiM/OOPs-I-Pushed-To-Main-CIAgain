@@ -1,3 +1,7 @@
+/**
+ * This file contains the edit dialog fragment.
+ * It is created when a user clicks on a field on the profile page
+ */
 package com.oopsipushedtomain;
 
 import android.app.Dialog;
@@ -6,22 +10,56 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
+/**
+ * The edit dialog fragment for editing the user's profile
+ */
 public class EditFieldDialogFragment extends DialogFragment {
 
+    /**
+     * The edit text shown for editing the data
+     */
     private EditText editTextValue;
 
+    /**
+     * The dialog listener for the edit field
+     */
+    EditFieldDialogListener listener;
+
+    /**
+     * An interface for defining the functions for performing an action when a button is pressed in the dialog
+     */
     public interface EditFieldDialogListener {
+        /**
+         * Performs a function when the confirm button is pressed on the dialog
+         * @param dialog The dialog clicked
+         * @param fieldName The name of the field
+         * @param fieldValue The value of the field
+         */
         void onDialogPositiveClick(DialogFragment dialog, String fieldName, String fieldValue);
+
+        /**
+         * Performs a function when the cancel button is pressed on the dialog
+         * @param dialog The dialog clicked
+         */
         void onDialogNegativeClick(DialogFragment dialog);
     }
 
-    EditFieldDialogListener listener;
 
+
+    /**
+     * Displays the current value of the field in the dialog before allowing editing.
+     * Also sets the click listeners for the buttons.
+     *
+     * @param savedInstanceState The last saved instance state of the Fragment,
+     *                           or null if this is a freshly created Fragment.
+     * @return A reference to the dialog
+     */
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
@@ -58,6 +96,11 @@ public class EditFieldDialogFragment extends DialogFragment {
     }
 
     // Override the Fragment.onAttach() method to instantiate the EditFieldDialogListener
+
+    /**
+     * Check if the calling class implements the EditFieldDialogListener interface
+     * @param context The running context
+     */
     @Override
     public void onAttach(@NonNull android.content.Context context) {
         super.onAttach(context);
