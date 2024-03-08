@@ -87,7 +87,6 @@ public class EventDetailsActivity extends AppCompatActivity {
             eventStartTimeEdit.setText(event.getStartTime());
             eventEndTimeEdit.setText(event.getEndTime());
             eventDescriptionEdit.setText(event.getDescription());
-            String eventId = event.getEventId();
             determineUserRole(currentUserUID, event.getEventId(), this::updateUIForRole);
         }
 

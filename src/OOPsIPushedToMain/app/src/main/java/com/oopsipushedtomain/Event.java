@@ -273,12 +273,20 @@ public class Event implements Serializable {
         this.attendeeLimit = attendeeLimit;
     }
 
+    /**
+     * Gets the arrayList of signedUpAttendees ID for the event.
+     * @return the signedUpAttendees arrayList
+     */
     public List<String> getSignedUpAttendees() {
         return signedUpAttendees;
     }
 
-    public void setSignedUpAttendees(List<String> attendees) {
-        this.signedUpAttendees = attendees;
+    /**
+     * Sets the arrayList of signedUpAttendees ID for the event.
+     * @param signedUpAttendees the signedUpAttendees arrayList to set
+     */
+    public void setSignedUpAttendees(List<String> signedUpAttendees) {
+        this.signedUpAttendees = signedUpAttendees;
     }
 
 
