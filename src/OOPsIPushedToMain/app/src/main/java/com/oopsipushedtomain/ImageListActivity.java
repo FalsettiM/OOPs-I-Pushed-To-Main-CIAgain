@@ -4,7 +4,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -30,7 +32,20 @@ public class ImageListActivity extends AppCompatActivity {
 
         recyclerView = findViewById(R.id.imagesRecyclerView); // Your RecyclerView ID
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new ImageAdapter(this, images);
+        adapter = new ImageAdapter(this, images, position -> {
+            // Show confirmation dialog
+            new AlertDialog.Builder(this)
+                    .setTitle("Delete Image")
+                    .setMessage("Are you sure you want to delete this image?")
+                    .setPositiveButton("Yes", (dialog, which) -> {
+                        // Delete the image from Firebase Storage and Firestore
+                        deleteImage(position);
+                    })
+                    .setNegativeButton("No", null)
+                    .show();
+        });
+        recyclerView.setAdapter(adapter);
+
         recyclerView.setAdapter(adapter);
 
         // Check the intent for what to display
@@ -44,6 +59,26 @@ public class ImageListActivity extends AppCompatActivity {
     }
 
     private void fetchAllEventsAndDisplayImages() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("events").get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                for (DocumentSnapshot documentSnapshot : task.getResult()) {
+                    if (documentSnapshot.exists()) {
+                        // Assuming 'eventImage' field contains the storage path of the image
+                        String imagePath = documentSnapshot.getString("eventImage");
+                        if (imagePath != null && !imagePath.isEmpty()) {
+                            fetchAndDisplayImage(imagePath);
+                        } else {
+                            Log.e("ImageListActivity", "No imagePath available for user: " + documentSnapshot.getId());
+                        }
+                    } else {
+                        Log.e("ImageListActivity", "Document does not exist");
+                    }
+                }
+            } else {
+                Log.e("ImageListActivity", "Error fetching event documents", task.getException());
+            }
+        });
     }
 
     public void fetchAllUsersAndDisplayImages() {
@@ -85,30 +120,19 @@ public class ImageListActivity extends AppCompatActivity {
         });
     }
 
-
-    // Placeholder for your method to fetch User objects. This could be fetching document IDs from Firestore and then creating User objects for each.
-    private FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-    public void getUsers(OnUsersFetchedListener listener) {
-        List<User> userList = new ArrayList<>();
-        db.collection("users").get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                for (DocumentSnapshot document : task.getResult()) {
-                    String userId = document.getId();
-                    User user = new User(userId, new User.DataLoadedListener() {
-                        @Override
-                        public void onDataLoaded() {
-                            // Handle user data loaded event if necessary
-                        }
-                    });
-                    userList.add(user);
-                }
-                // Invoke the callback once all users are added to the list
-                listener.onUsersFetched(userList);
-            } else {
-                Log.d("Firestore", "Error getting documents: ", task.getException());
-            }
+    private void deleteImage(int position) {
+        // Example: Deleting an image from Firebase Storage
+        String imagePath = "path/to/your/image"; // Determine the path based on your logic
+        FirebaseStorage.getInstance().getReference().child(imagePath).delete().addOnSuccessListener(aVoid -> {
+            // Remove the image reference from Firestore document if needed
+            // Remove the Bitmap from your adapter's data set and notify the adapter
+            images.remove(position);
+            adapter.notifyDataSetChanged();
+            Toast.makeText(this, "Image deleted successfully", Toast.LENGTH_SHORT).show();
+        }).addOnFailureListener(e -> {
+            Toast.makeText(this, "Failed to delete image", Toast.LENGTH_SHORT).show();
         });
     }
+
 }
 

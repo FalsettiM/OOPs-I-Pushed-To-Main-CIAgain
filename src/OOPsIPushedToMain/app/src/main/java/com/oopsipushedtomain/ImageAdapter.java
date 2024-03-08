@@ -17,17 +17,24 @@ import java.util.List;
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> {
     private List<Bitmap> images;
     private Context context;
+    private OnItemClickListener listener;
 
-    public ImageAdapter(Context context, List<Bitmap> images) {
+    // Interface for click events
+    public interface OnItemClickListener {
+        void onItemClick(int position);
+    }
+
+    public ImageAdapter(Context context, List<Bitmap> images, OnItemClickListener listener) {
         this.context = context;
         this.images = images;
+        this.listener = listener;
     }
 
     @NonNull
     @Override
     public ImageAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.image_item, parent, false);
-        return new ViewHolder(view);
+        return new ViewHolder(view, listener);
     }
 
     @Override
@@ -44,9 +51,18 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imageView;
 
-        public ViewHolder(@NonNull View itemView) {
+        public ViewHolder(@NonNull View itemView, OnItemClickListener listener) {
             super(itemView);
             imageView = itemView.findViewById(R.id.imageView); // Ensure this ID matches in your layout
+            itemView.setOnClickListener(v -> {
+                if (listener != null) {
+                    int position = getAdapterPosition();
+                    if (position != RecyclerView.NO_POSITION) {
+                        listener.onItemClick(position);
+                    }
+                }
+            });
         }
     }
 }
+
