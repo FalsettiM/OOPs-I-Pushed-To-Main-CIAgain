@@ -2,6 +2,7 @@ package com.oopsipushedtomain;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -13,6 +14,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -95,18 +97,18 @@ public class EventListActivity extends AppCompatActivity {
         eventList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                // Assuming the adapter is populated with Event objects, you can cast directly to Event
                 Event selectedEvent = (Event) parent.getItemAtPosition(position);
-                Intent intent;
+                if (selectedEvent != null && selectedEvent.getEventId() != null) {
+                    String eventId = selectedEvent.getEventId();
+                    Log.d("EventListActivity", "Clicked event ID: " + eventId);
 
-                // TODO: Replace the following condition with actual logic to determine user role
-                if (true) {
-                    intent = new Intent(EventListActivity.this, EventDetailsActivity.class);
+                    Intent intent = new Intent(EventListActivity.this, EventDetailsActivity.class);
+                    intent.putExtra("eventId", eventId);
+                    startActivity(intent);
                 } else {
-                    intent = new Intent(EventListActivity.this, EventDetailsActivity.class);
+                    Log.e("EventListActivity", "The event or event ID is null.");
                 }
-
-                intent.putExtra("selectedEvent", selectedEvent);
-                startActivity(intent);
             }
         });
     }
@@ -118,15 +120,13 @@ public class EventListActivity extends AppCompatActivity {
         db.collection("events").get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 eventDataList.clear();
-                for (QueryDocumentSnapshot document : task.getResult()) {
-                    String title = document.getString("title");
-                    String startDateTime = document.getString("startDateTime");
-                    String endDateTime = document.getString("endDateTime");
-                    String details = document.getString("details");
-                    String eventId = document.getId();
-                    // Extract other fields as necessary and create a new Event object
-                    Event event = new Event(eventId, title, startDateTime, endDateTime, details, "", "", 0);
-                    eventDataList.add(event);
+                for (DocumentSnapshot documentSnapshot : task.getResult()) {
+                    Event event = documentSnapshot.toObject(Event.class);
+                    if (event != null) {
+                        // Set the eventId of the Event object to the document ID
+                        event.setEventId(documentSnapshot.getId());
+                        eventDataList.add(event);
+                    }
                 }
                 eventAdapter.notifyDataSetChanged();
             } else {
@@ -134,5 +134,6 @@ public class EventListActivity extends AppCompatActivity {
             }
         });
     }
+
 
 }

@@ -73,6 +73,7 @@ public class EventDetailsActivity extends AppCompatActivity {
             eventStartTimeEdit.setText(event.getStartTime());
             eventEndTimeEdit.setText(event.getEndTime());
             eventDescriptionEdit.setText(event.getDescription());
+            String eventId = event.getEventId();
         }
 
         eventPosterEdit.setOnClickListener(new View.OnClickListener() {
@@ -125,7 +126,13 @@ public class EventDetailsActivity extends AppCompatActivity {
         });
 
         findViewById(R.id.btnDeleteEvent).setOnClickListener(v -> {
-            deleteEvent();
+            final String eventId = getIntent().getStringExtra("eventId");
+            // Call deleteEvent with the eventId
+            if (eventId != null) {
+                deleteEvent(eventId);
+            } else {
+                Toast.makeText(this, "Event ID is not available.", Toast.LENGTH_SHORT).show();
+            }
         });
 
     }
@@ -172,23 +179,18 @@ public class EventDetailsActivity extends AppCompatActivity {
         return true;
     }
 
-    private void deleteEvent() {
+    private void deleteEvent(String eventId) { // eventId passed as a parameter
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        String eventId = getIntent().getStringExtra("eventId");
         db.collection("events").document(eventId)
                 .delete()
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(EventDetailsActivity.this, "Event deleted successfully", Toast.LENGTH_SHORT).show();
-                    // Navigate back to EventListActivity
-                    Intent intent = new Intent(EventDetailsActivity.this, EventListActivity.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK); // Clears the back stack
-                    startActivity(intent);
-
-                    // Can also just use "finish()". Goes back to the previous activity and closes this one
-
+                    // Intent to navigate back or simply finish this activity
+                    finish();
                 })
                 .addOnFailureListener(e -> Toast.makeText(EventDetailsActivity.this, "Error deleting event", Toast.LENGTH_SHORT).show());
     }
+
 
 
 
