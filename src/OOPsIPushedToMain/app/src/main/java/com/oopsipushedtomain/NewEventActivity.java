@@ -85,6 +85,7 @@ public class NewEventActivity extends AppCompatActivity {
             Event newEvent = new Event(
                     title, startTime, endTime, description, "testlocation", "testURL", 15);
             newEvent.addEventToDatabase();
+            finish();
             //Intent intent = new Intent(NewEventActivity.this, EventDetailsActivity.class);
             //startActivity(intent);
         });
