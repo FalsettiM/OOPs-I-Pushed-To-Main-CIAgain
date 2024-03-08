@@ -174,6 +174,7 @@ public class User {
 
     /**
      * Creates an instance of the new user class given a UID
+     *
      * @param userID The UID of the user
      */
     public User(String userID, DataLoadedListener listener) {
@@ -194,12 +195,12 @@ public class User {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                UpdateAllDataFields(listener);;
+                UpdateAllDataFields(listener);
+                ;
             }
         }).start();
 
     }
-
 
 
     /**
@@ -235,7 +236,7 @@ public class User {
                             Log.d("Firebase", "Array list loading");
 
                             // Convert each element a string
-                            if (rawList != null){
+                            if (rawList != null) {
                                 for (Object item : rawList) {
                                     if (item instanceof String) {
                                         announcementsList.add((String) item);
@@ -255,7 +256,7 @@ public class User {
                         Log.d("Firebase", "No such document");
                     }
                 } else {
-                    Log.d("Firebase Failure",  "get failed with ", task.getException());
+                    Log.d("Firebase Failure", "get failed with ", task.getException());
                 }
             }
         });
@@ -369,6 +370,12 @@ public class User {
 
 
     // ChatGPT: How can you upload an image to firebase?
+
+    /**
+     * Sets the user's profile image in the database
+     *
+     * @param profileImage The image to store as a bitmap
+     */
     public void setProfileImage(Bitmap profileImage) {
         // Convert the bitmap to PNG for upload
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -470,7 +477,7 @@ public class User {
         StorageReference profileImageRef = storageRef.child(imageUID);
 
         // Down load the image
-        final long ONE_MEGABYTE = 1024*1024;
+        final long ONE_MEGABYTE = 1024 * 1024;
         profileImageRef.getBytes(ONE_MEGABYTE).addOnSuccessListener(bytes -> {
             // Convert to a bitmap
             Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
@@ -479,10 +486,14 @@ public class User {
         });
     }
 
-    public ArrayList<String> getAnnouncementsList(){
+    /**
+     * Gets the array list containing the announcements
+     *
+     * @return The announcements array list
+     */
+    public ArrayList<String> getAnnouncementsList() {
         return announcementsList;
     }
-
 
 
     /**
