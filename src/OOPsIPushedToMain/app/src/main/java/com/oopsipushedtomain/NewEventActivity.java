@@ -97,6 +97,7 @@ public class NewEventActivity extends AppCompatActivity {
             // TODO: Add functionality for location, posterURL, attendeeLimit
             Event newEvent = new Event(title, startTime, endTime, description, "testlocation", "testURL", 15);
             newEvent.addEventToDatabase();
+            finish();
             //Intent intent = new Intent(NewEventActivity.this, EventDetailsActivity.class);
             //startActivity(intent);
         });
