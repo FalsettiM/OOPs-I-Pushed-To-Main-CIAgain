@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -33,6 +34,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.DocumentReference;
 
 
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -75,6 +78,31 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
             }
     );
 
+    private final ActivityResultLauncher<String> galleryResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.GetContent(),
+            result -> {
+                if (result != null) {
+                    // Handle the selected image URI
+                    InputStream inputStream = null;
+                    try {
+                        inputStream = getContentResolver().openInputStream(result);
+                    } catch (FileNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
+                    Bitmap picture = BitmapFactory.decodeStream(inputStream);
+                    ((ImageView) profileImageView).setImageURI(result);
+                    // Upload the image to storage
+                    // TODO: un-hardcode userID
+                    user = new User("USER-9DRH1BAQZQMGZJEZFMGL", new User.DataLoadedListener() {
+                        @Override
+                        public void onDataLoaded() {
+                            user.setProfileImage(picture);
+                        }
+                    });
+                }
+            }
+    );
+
     /**
      * Initializes the activity, sets up the UI elements, and prepares Firestore interaction
      * @param savedInstanceState If the activity is being re-initialized after
@@ -104,28 +132,49 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
             public void onClick(View v) {
                 Drawable currentImage = ((ImageView) profileImageView).getDrawable();
                 if (currentImage.equals(defaultImage)) {
-                    Log.d("ProfileActivity", "Profile image view clicked");
-                    Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    cameraResultLauncher.launch(cameraIntent);
-                } else {
-                    // Only show the AlertDialog if the current image is not the default image
-                    new AlertDialog.Builder(ProfileActivity.this)
-                            .setTitle("Delete Profile Image")
-                            .setMessage("Are you sure you want to delete your profile picture?")
-                            .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(ProfileActivity.this);
+                    builder.setTitle("Update Profile Image");
+                    builder.setItems(new CharSequence[]{"Take Photo", "Choose from Gallery"},
+                            new DialogInterface.OnClickListener() {
+                                @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    // User clicked Yes button
-                                    Log.d("ProfileActivity", "Delete profile image");
-                                    if (user != null) {
-                                        user.deleteProfileImage();
-                                        // Update UI to show the default image
-                                        ((ImageView) profileImageView).setImageDrawable(defaultImage);
+                                    switch (which) {
+                                        case 0: // Take Photo
+                                            Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                                            cameraResultLauncher.launch(cameraIntent);
+                                            break;
+                                        case 1: // Choose from Gallery
+                                            galleryResultLauncher.launch("image/*");
+                                            break;
                                     }
                                 }
-                            })
-                            .setNegativeButton(android.R.string.no, null)
-                            .setIcon(android.R.drawable.ic_dialog_alert)
-                            .show();
+                            });
+                    builder.show();
+                } else {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(ProfileActivity.this);
+                    builder.setTitle("Update Profile Image");
+                    builder.setItems(new CharSequence[]{"Take Photo", "Choose from Gallery", "Delete Photo"},
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    switch (which) {
+                                        case 0: // Take Photo
+                                            Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                                            cameraResultLauncher.launch(cameraIntent);
+                                            break;
+                                        case 1: // Choose from Gallery
+                                            galleryResultLauncher.launch("image/*");
+                                            break;
+                                        case 2: // Delete Photo
+                                            if (user != null) {
+                                                user.deleteProfileImage();
+                                                ((ImageView) profileImageView).setImageDrawable(defaultImage);
+                                            }
+                                            break;
+                                    }
+                                }
+                            });
+                    builder.show();
                 }
             }
         });
