@@ -13,7 +13,12 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.auth.FirebaseAuthCredentialsProvider;
+import com.google.firebase.firestore.auth.User;
 import com.oopsipushedtomain.Announcements.AnnouncementListActivity;
 import com.oopsipushedtomain.Announcements.SendAnnouncementActivity;
 
@@ -47,7 +52,9 @@ public class EventDetailsActivity extends AppCompatActivity {
     private EditText eventEndTimeEdit;
     private EditText eventDescriptionEdit;
     private ImageView eventPosterEdit;
-    private Button eventSaveButton, sendNotificationButton, viewAnnouncementsButton;
+    private Button eventSaveButton, sendNotificationButton, viewAnnouncementsButton, signUpButton, viewLimitAttendeeButton, deleteButton, viewEventQRCodeButton;
+
+    private String currentUserUID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,9 +69,16 @@ public class EventDetailsActivity extends AppCompatActivity {
         eventSaveButton = findViewById(R.id.btnSaveEventDetails);
         sendNotificationButton = findViewById(R.id.btnSendNotification);
         viewAnnouncementsButton = findViewById(R.id.btnViewAnnouncements);
+        signUpButton = findViewById(R.id.btnSignUpEvent);
+        viewLimitAttendeeButton = findViewById(R.id.btnViewLimitAttendees);
+        deleteButton = findViewById(R.id.btnDeleteEvent);
+        viewEventQRCodeButton = findViewById(R.id.btnViewEventQRCode);
+        currentUserUID = CustomFirebaseAuth.getInstance().getCurrentUserID();
 
         eventStartTimeEdit.setOnClickListener(v -> showDateTimePicker(eventStartTimeEdit));
         eventEndTimeEdit.setOnClickListener(v -> showDateTimePicker(eventEndTimeEdit));
+
+
 
         Event event = (Event) getIntent().getSerializableExtra("selectedEvent");
         if (event != null) {
@@ -74,7 +88,10 @@ public class EventDetailsActivity extends AppCompatActivity {
             eventEndTimeEdit.setText(event.getEndTime());
             eventDescriptionEdit.setText(event.getDescription());
             String eventId = event.getEventId();
+            determineUserRole(currentUserUID, event.getEventId(), this::updateUIForRole);
         }
+
+
 
         eventPosterEdit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -102,6 +119,13 @@ public class EventDetailsActivity extends AppCompatActivity {
             }
         });
 
+        signUpButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                signUpForEvent(event.getEventId());
+            }
+        });
+
         sendNotificationButton.setOnClickListener(v -> {
             Intent intent = new Intent(EventDetailsActivity.this, SendAnnouncementActivity.class);
             intent.putExtra("eventId", event.getEventId());
@@ -115,17 +139,17 @@ public class EventDetailsActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        findViewById(R.id.btnViewLimitAttendees).setOnClickListener(v -> {
+        viewLimitAttendeeButton.setOnClickListener(v -> {
             //Intent intent = new Intent(this, ViewLimitAttendeesActivity.class);
             //startActivity(intent);
         });
 
-        findViewById(R.id.btnViewEventQRCode).setOnClickListener(v -> {
+        viewEventQRCodeButton.setOnClickListener(v -> {
             //Intent intent = new Intent(this, ViewEventQRCodeActivity.class);
             //startActivity(intent);
         });
 
-        findViewById(R.id.btnDeleteEvent).setOnClickListener(v -> {
+        deleteButton.setOnClickListener(v -> {
             final String eventId = getIntent().getStringExtra("eventId");
             // Call deleteEvent with the eventId
             if (eventId != null) {
@@ -190,6 +214,95 @@ public class EventDetailsActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> Toast.makeText(EventDetailsActivity.this, "Error deleting event", Toast.LENGTH_SHORT).show());
     }
+
+    private void signUpForEvent(String eventId) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference eventRef = db.collection("events").document(eventId);
+
+        eventRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DocumentSnapshot document = task.getResult();
+                if (document.exists()) {
+                    Event event = document.toObject(Event.class);
+                    if (event != null && event.getSignedUpAttendees().size() < event.getAttendeeLimit()) {
+                        // Proceed with signing up the user
+                        eventRef.update("signedUpAttendees", FieldValue.arrayUnion(currentUserUID))
+                                .addOnSuccessListener(aVoid -> Toast.makeText(EventDetailsActivity.this, "Signed up successfully", Toast.LENGTH_SHORT).show())
+                                .addOnFailureListener(e -> Toast.makeText(EventDetailsActivity.this, "Sign up failed, limit exceeded", Toast.LENGTH_SHORT).show());
+                    } else {
+                        Toast.makeText(EventDetailsActivity.this, "Event is full", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+
+        });
+    }
+
+    public enum UserRole {
+        ORGANIZER, ATTENDEE_NOT_SIGNED_UP, ATTENDEE_SIGNED_UP
+    }
+
+    public void determineUserRole(String userId, String eventId, final UserRoleCallback callback) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        DocumentReference createdRef = db.collection("users").document(userId).collection("created").document(eventId);
+        DocumentReference signedUpRef = db.collection("users").document(userId).collection("signedup").document(eventId);
+
+        createdRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && task.getResult() != null && task.getResult().exists()) {
+                callback.onRoleDetermined(UserRole.ORGANIZER);
+            } else {
+                // Not an organizer, check if attendee
+                signedUpRef.get().addOnCompleteListener(task2 -> {
+                    if (task2.isSuccessful() && task2.getResult() != null && task2.getResult().exists()) {
+                        callback.onRoleDetermined(UserRole.ATTENDEE_SIGNED_UP);
+                    } else {
+                        callback.onRoleDetermined(UserRole.ATTENDEE_NOT_SIGNED_UP);
+                    }
+                });
+            }
+        });
+    }
+
+    public interface UserRoleCallback {
+        void onRoleDetermined(UserRole role);
+    }
+
+    private void updateUIForRole(UserRole role) {
+        switch (role) {
+            case ORGANIZER:
+                // Organizer should see all buttons except sign up button
+                eventSaveButton.setVisibility(View.VISIBLE);
+                sendNotificationButton.setVisibility(View.VISIBLE);
+                viewAnnouncementsButton.setVisibility(View.VISIBLE);
+                signUpButton.setVisibility(View.GONE);
+                deleteButton.setVisibility(View.VISIBLE);
+                viewLimitAttendeeButton.setVisibility(View.VISIBLE);
+                viewEventQRCodeButton.setVisibility(View.VISIBLE);
+                break;
+            case ATTENDEE_SIGNED_UP:
+                // Signed-up attendee should not see any button
+                eventSaveButton.setVisibility(View.GONE);
+                sendNotificationButton.setVisibility(View.GONE);
+                viewAnnouncementsButton.setVisibility(View.GONE);
+                signUpButton.setVisibility(View.GONE);
+                deleteButton.setVisibility(View.GONE);
+                viewLimitAttendeeButton.setVisibility(View.GONE);
+                viewEventQRCodeButton.setVisibility(View.GONE);
+                break;
+            case ATTENDEE_NOT_SIGNED_UP:
+                // Unsigned-up attendee should see the sign up button
+                eventSaveButton.setVisibility(View.GONE);
+                sendNotificationButton.setVisibility(View.GONE);
+                viewAnnouncementsButton.setVisibility(View.GONE);
+                signUpButton.setVisibility(View.VISIBLE);
+                deleteButton.setVisibility(View.GONE);
+                viewLimitAttendeeButton.setVisibility(View.GONE);
+                viewEventQRCodeButton.setVisibility(View.GONE);
+                break;
+        }
+    }
+
 
 
 

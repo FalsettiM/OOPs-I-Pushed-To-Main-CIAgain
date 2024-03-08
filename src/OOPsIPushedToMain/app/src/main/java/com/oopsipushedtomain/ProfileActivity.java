@@ -126,6 +126,8 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
             }
         });
 
+        CustomFirebaseAuth.getInstance().signIn(userId);  // a mock-up sign in feature
+
         // Initialize UI elements and load attendee data
         initializeViews();
 
