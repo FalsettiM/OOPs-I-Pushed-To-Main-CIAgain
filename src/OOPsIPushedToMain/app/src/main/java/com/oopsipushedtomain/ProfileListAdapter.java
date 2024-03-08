@@ -19,26 +19,39 @@ public class ProfileListAdapter extends RecyclerView.Adapter<ProfileListAdapter.
     private List<Profile> profileList; // List to hold profile data
     private Context context;
 
+    private OnItemClickListener listener;
+
     /**
      * Constructor for ProfileListAdapter.
      * @param context The context of the activity or fragment.
      * @param profileList The list of Profile objects to be displayed.
      */
-    public ProfileListAdapter(Context context, List<Profile> profileList) {
+    public ProfileListAdapter(Context context, List<Profile> profileList, OnItemClickListener listener) {
         this.context = context;
         this.profileList = profileList;
+        this.listener = listener;
     }
 
     /**
      * ViewHolder class for layout binding.
      */
-    public static class ProfileViewHolder extends RecyclerView.ViewHolder {
-        public TextView nameTextView; // TextView to display the name
+    public class ProfileViewHolder extends RecyclerView.ViewHolder {
+        // Assuming you have a TextView called textViewName as part of your item layout
+        public TextView nameTextView;
 
         public ProfileViewHolder(View itemView) {
             super(itemView);
-            nameTextView = itemView.findViewById(R.id.profileNameTextView); // Initialize name TextView
-            // Initialize other views from the item layout here
+            nameTextView = itemView.findViewById(R.id.nameTextView);
+
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    int position = getAdapterPosition();
+                    if (position != RecyclerView.NO_POSITION) {
+                        listener.onItemClick(profileList.get(position));
+                    }
+                }
+            });
         }
     }
 
