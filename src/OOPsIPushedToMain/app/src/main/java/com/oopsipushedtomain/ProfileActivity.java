@@ -1,10 +1,8 @@
 package com.oopsipushedtomain;
 
 import android.app.Activity;
-
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -20,22 +18,13 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContract;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
-import com.oopsipushedtomain.Announcements.AnnouncementListActivity;
-
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -47,12 +36,10 @@ import com.google.firebase.firestore.DocumentReference;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-
-import java.text.ParseException;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -61,22 +48,13 @@ import java.util.Map;
  */
 public class ProfileActivity extends AppCompatActivity implements EditFieldDialogFragment.EditFieldDialogListener {
 
-    // Declare the user
-    private User user;
-
-    // Declare a QRCode for scanning
-    private QRCode qrCode;
-
-
     // Declare UI elements for labels and values
+    private TextView nameLabel, nicknameLabel, birthdayLabel, homepageLabel, addressLabel, phoneNumberLabel, emailLabel;
     private TextView nameValue, nicknameValue, birthdayValue, homepageValue, addressValue, phoneNumberValue, emailValue;
-
     private View profileImageView;
-    
-
-    private Button eventsButton, scanQRCodeButton, adminButton;
-
+    private Button notificationsButton, eventsButton, announcementsButton, scanQRCodeButton, adminButton;
     private Switch toggleGeolocationSwitch;
+    private FirebaseFirestore db;
     private String userId = "USER-0000000000"; // Get from bundle
     private User user;
     private Drawable defaultImage;
@@ -125,37 +103,26 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
             }
     );
 
-    // Activity result launcher for getting the result of the QRCodeScan
-    private ActivityResultLauncher<Intent> qrCodeActivityResultLauncher;
-
-
     /**
-     * Initializes the activity and sets up the UI elements
-     *
+     * Initializes the activity, sets up the UI elements, and prepares Firestore interaction
      * @param savedInstanceState If the activity is being re-initialized after
-     *                           previously being shut down then this Bundle contains the data it most
-     *                           recently supplied in {@link #onSaveInstanceState}.  <b><i>Note: Otherwise it is null.</i></b>
+     *     previously being shut down then this Bundle contains the data it most
+     *     recently supplied in {@link #onSaveInstanceState}.  <b><i>Note: Otherwise it is null.</i></b>
+     *
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        // Load the information about the given user
-        user = new User(userId, new User.DataLoadedListener() {
-            @Override
-            public void onDataLoaded() {
-                // Initialize the UI elements and load attendee data
-                initializeViews();
-            }
-        });
+        // Initialize Firestore
+        db = FirebaseFirestore.getInstance();
 
         // Initialize UI elements and load attendee data
         initializeViews();
 
         // Setup listeners for interactive elements
         setupListeners();
-
 
         // Set-up ImageView and set on-click listener
         profileImageView = findViewById(R.id.profileImageView);
@@ -212,94 +179,57 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
             }
         });
     }
-   
-
-        // Qr code activity launcher
-        // ChatGPT, How do I pass a variable back to the calling activity?, Can you give me the code for registerForActivityResult()
-        // Register the activity result
-        qrCodeActivityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+    /**
+     * Gets user data based on user ID and loads data
+     */
+    private void loadUserDataFromFirestore() {
+        //db = FirebaseFirestore.getInstance();
+        DocumentReference docRef = db.collection("users").document(userId);
+        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
-            public void onActivityResult(ActivityResult o) {
-                if (o.getResultCode() == Activity.RESULT_OK) {
-                    // Get the data
-                    Intent data = o.getData();
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document.exists()) {
+                        // Extract fields and update UI
+                        Timestamp birthdayTimestamp = document.getTimestamp("birthday");
+                        Date birthdayDate = birthdayTimestamp.toDate();
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                        String birthday = sdf.format(birthdayDate);
+                        birthdayValue.setText(birthday);
 
-                    // If the data is not null, load the QR code
-                    if (data != null) {
-                        String qrCodeString = data.getStringExtra("result");
+                        String name = document.getString("name");
+                        String nickname = document.getString("nickname");
+                        String homepage = document.getString("homepage");
+                        String address = document.getString("address");
+                        String phone = document.getString("phone");
+                        String email = document.getString("email");
 
-                        // Check the user into the event
-                        user.checkIn(qrCodeString);
-
-                        // Show the scanned data
-                        Toast.makeText(getApplicationContext(), "Checked into event: " + qrCodeString, Toast.LENGTH_LONG).show();
-                        Log.d("QR Code", "Checked into event: " + qrCodeString);
-
-
+                        // Update UI elements
+                        nameValue.setText(name);
+                        nicknameValue.setText(nickname);
+                        birthdayValue.setText(birthday);
+                        homepageValue.setText(homepage);
+                        addressValue.setText(address);
+                        phoneNumberValue.setText(phone);
+                        emailValue.setText(email);
                     } else {
-                        Toast.makeText(getApplicationContext(), "Data Error", Toast.LENGTH_LONG).show();
-                        Log.d("QR Code", "QR Code Not Scanned");
+                        Log.d("Document", "No such document");
                     }
+                } else {
+                    Log.d("Document", "get failed with ", task.getException());
                 }
             }
         });
     }
 
     /**
-     * Updates the user elements on the UI
-     */
-    private void updateUIElements() {
-
-        // Get the data from user
-        String name = user.getName();
-        String nickname = user.getNickname();
-        String homepage = user.getHomepage();
-        String address = user.getAddress();
-        String phone = user.getPhone();
-        String email = user.getEmail();
-        Date birthday = user.getBirthday();
-
-        // Update the fields
-        if (name != null) {
-            nameValue.setText(name);
-        }
-
-        if (nickname != null) {
-            nicknameValue.setText(nickname);
-        }
-
-        if (birthday != null) {
-            // Format the date
-            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-            birthdayValue.setText(formatter.format(birthday));
-        }
-
-        if (homepage != null) {
-            homepageValue.setText(homepage);
-        }
-
-        if (address != null) {
-            addressValue.setText(address);
-        }
-
-        if (phone != null) {
-            phoneNumberValue.setText(phone);
-        }
-
-        if (email != null) {
-            emailValue.setText(email);
-        }
-    }
-
-    /**
      * Handles the positive click action from the edit field dialog.
      * Updates the corresponding profile field with the new value entered by the user.
-     *
      * @param dialog
      * @param fieldName
      * @param fieldValue
      */
-
     @Override
     public void onDialogPositiveClick(DialogFragment dialog, String fieldName, String fieldValue) {
 
@@ -308,46 +238,47 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
         switch (fieldName) {
             case "Name":
                 nameValue.setText(fieldValue);
-                user.setName(fieldValue);
+                update.put("name", fieldValue);
                 break;
             case "Nickname":
                 nicknameValue.setText(fieldValue);
-                user.setNickname(fieldValue);
+                update.put("nickname", fieldValue);
                 break;
             case "Birthday":
-                birthdayValue.setText(fieldValue);
-
-                // Format the given date, ChatGPT: How do i format a string into date
-                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-                try {
-                    Date birthday = formatter.parse(fieldValue);
-                    user.setBirthday(birthday);
-                } catch (ParseException e) {
-                    Log.d("ProfileActivity", "Date formatting failed");
-                }
+                // TODO: Implement format for birthday field
+                birthdayValue.setText(fieldValue); // Corrected to update birthdayTextView
+                update.put("birthday", fieldValue);
                 break;
             case "Homepage":
                 homepageValue.setText(fieldValue); // Corrected to update homepageTextView
-                user.setHomepage(fieldValue);
+                update.put("homepage", fieldValue);
                 break;
             case "Address":
                 addressValue.setText(fieldValue); // Corrected to update addressTextView
-                user.setAddress(fieldValue);
+                update.put("address", fieldValue);
                 break;
             case "Phone Number":
+                // TODO: Implement format for phone number field
                 phoneNumberValue.setText(fieldValue); // Corrected to update phoneNumberTextView
-                user.setPhone(fieldValue);
+                update.put("phone", fieldValue);
                 break;
             case "Email":
                 emailValue.setText(fieldValue); // Corrected to update emailTextView
-                user.setEmail(fieldValue);
+                update.put("email", fieldValue);
                 break;
+        }
+
+        // Update Firestore
+        if (!update.isEmpty()) {
+            db.collection("users").document(userId)
+                    .update(update)
+                    .addOnSuccessListener(aVoid -> Log.d("Firestore", "DocumentSnapshot successfully updated!"))
+                    .addOnFailureListener(e -> Log.w("Firestone", "Error updating document", e));
         }
     }
 
     /**
      * Handles the positive click action from the edit field dialog.
-     *
      * @param dialog
      */
     @Override
@@ -357,7 +288,6 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
 
     /**
      * Shows the edit field dialog for a field on the page using its current value
-     *
      * @param fieldName
      * @param fieldValue
      */
@@ -374,6 +304,12 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
      * Initialize views to connect to layout file
      */
     private void initializeViews() {
+        // Initialize labels (TextViews for field names)
+        birthdayLabel = findViewById(R.id.birthdayLabelTextView);
+        homepageLabel = findViewById(R.id.homepageLabelTextView);
+        addressLabel = findViewById(R.id.addressLabelTextView);
+        phoneNumberLabel = findViewById(R.id.phoneNumberLabelTextView);
+        emailLabel = findViewById(R.id.emailLabelTextView);
 
         // Initialize values (TextViews for field values)
         nameValue = findViewById(R.id.nameTextView);
@@ -385,7 +321,9 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
         emailValue = findViewById(R.id.emailValueTextView);
 
         // Initialize buttons
+        notificationsButton = findViewById(R.id.notificationsButton);
         eventsButton = findViewById(R.id.eventsButton);
+        announcementsButton = findViewById(R.id.announcementsButton);
         scanQRCodeButton = findViewById(R.id.scanQRCodeButton);
         adminButton = findViewById(R.id.adminButton);
 
@@ -393,7 +331,7 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
         toggleGeolocationSwitch = findViewById(R.id.toggleGeolocationSwitch);
 
         // Load user data into views
-        updateUIElements();
+        loadUserDataFromFirestore();
     }
 
     /**
@@ -422,19 +360,6 @@ public class ProfileActivity extends AppCompatActivity implements EditFieldDialo
                 startActivity(intent);
             }
         });
-        scanQRCodeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Switch to the scanning activity and scan
-                Intent intent = new Intent(getApplicationContext(), QRScanner.class);
 
-                // Start the activity
-                qrCodeActivityResultLauncher.launch(intent);
-
-                // This is asynchronous. DO NOT PUT CODE HERE
-
-            }
-
-        });
     }
 }

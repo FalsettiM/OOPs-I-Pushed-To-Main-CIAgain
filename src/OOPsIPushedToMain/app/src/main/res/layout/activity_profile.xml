@@ -156,14 +156,34 @@
                 app:layout_constraintTop_toTopOf="@+id/emailLabelTextView" />
 
             <Button
+                android:id="@+id/notificationsButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="Notifications"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/emailLabelTextView" />
+
+            <Button
                 android:id="@+id/eventsButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="Events"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/emailLabelTextView" />
+                app:layout_constraintEnd_toEndOf="@id/notificationsButton"
+                app:layout_constraintStart_toStartOf="@id/notificationsButton"
+                app:layout_constraintTop_toBottomOf="@id/notificationsButton" />
+
+            <Button
+                android:id="@+id/announcementsButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Announcements"
+                app:layout_constraintEnd_toEndOf="@id/eventsButton"
+                app:layout_constraintStart_toStartOf="@id/eventsButton"
+                app:layout_constraintTop_toBottomOf="@id/eventsButton" />
 
             <Button
                 android:id="@+id/scanQRCodeButton"
@@ -171,9 +191,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="Scan QR Code for Check-In"
-                app:layout_constraintEnd_toEndOf="@id/eventsButton"
-                app:layout_constraintStart_toStartOf="@id/eventsButton"
-                app:layout_constraintTop_toBottomOf="@id/eventsButton" />
+                app:layout_constraintEnd_toEndOf="@id/announcementsButton"
+                app:layout_constraintStart_toStartOf="@id/announcementsButton"
+                app:layout_constraintTop_toBottomOf="@id/announcementsButton" />
 
             <Button
                 android:id="@+id/adminButton"

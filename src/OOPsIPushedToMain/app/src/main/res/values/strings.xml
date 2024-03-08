@@ -2,11 +2,4 @@
     <string name="app_name">OOPsIPushedToMain</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="send_announcement">Send Announcement</string>
-    <string name="announcement_title">Announcement Title</string>
-    <string name="announcement_body">Announcement Body</string>
-    <string name="send">Send</string>
-    <string name="cancel">Cancel</string>
-    <string name="event_title_header">Sending announcement for event:</string>
-    <string name="announcements_header">Announcements</string>
 </resources>
