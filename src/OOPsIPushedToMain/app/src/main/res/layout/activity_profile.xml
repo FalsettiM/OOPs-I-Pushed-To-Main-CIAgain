@@ -195,15 +195,25 @@
                 app:layout_constraintStart_toStartOf="@id/announcementsButton"
                 app:layout_constraintTop_toBottomOf="@id/announcementsButton" />
 
+            <Button
+                android:id="@+id/adminButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Admin"
+                app:layout_constraintEnd_toEndOf="@id/scanQRCodeButton"
+                app:layout_constraintStart_toStartOf="@id/scanQRCodeButton"
+                app:layout_constraintTop_toBottomOf="@id/scanQRCodeButton" />
+
             <Switch
                 android:id="@+id/toggleGeolocationSwitch"
                 android:layout_width="0dp"
                 android:layout_height="48dp"
                 android:layout_marginTop="16dp"
                 android:text="Toggle Geolocation"
-                app:layout_constraintEnd_toEndOf="@id/scanQRCodeButton"
-                app:layout_constraintStart_toStartOf="@id/scanQRCodeButton"
-                app:layout_constraintTop_toBottomOf="@id/scanQRCodeButton" />
+                app:layout_constraintEnd_toEndOf="@id/adminButton"
+                app:layout_constraintStart_toStartOf="@id/adminButton"
+                app:layout_constraintTop_toBottomOf="@id/adminButton" />
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>
