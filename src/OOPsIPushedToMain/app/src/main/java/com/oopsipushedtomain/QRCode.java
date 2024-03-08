@@ -1,7 +1,5 @@
 package com.oopsipushedtomain;
 
-import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -10,9 +8,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -26,11 +22,8 @@ import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 
 /**
@@ -72,6 +65,9 @@ public class QRCode {
         void onBitmapReceived(Bitmap bitmap);
     }
 
+    /**
+     * Interface for checking when there is a new code loaded into the class
+     */
     public interface NewCodeListener {
         void onDataInitialized();
     }
@@ -86,6 +82,11 @@ public class QRCode {
         storageRef = storage.getReference();
     }
 
+    /**
+     * Generates a new qr code for the given text. It will store it into the database
+     *
+     * @param text The text that is shown when scanning the qr code
+     */
     public QRCode(String text) {
         // Initialize the database
         InitDatabase();
@@ -113,11 +114,17 @@ public class QRCode {
         try {
             generateCode(text);
         } catch (WriterException e) {
-            Log.d("QR Code","Generating Failed");
+            Log.d("QR Code", "Generating Failed");
         }
 
     }
 
+    /**
+     * Loads a previously created QR code from the database
+     *
+     * @param qrCodeID The UID of the QR code to load
+     * @param listener A listener for checking when the data is done loading
+     */
     public QRCode(String qrCodeID, DataLoadedListener listener) {
         // Initialize database
         InitDatabase();
@@ -134,11 +141,11 @@ public class QRCode {
                     @Override
                     public void onDataInitialized() {
                         // Generate a new code
-                        Log.d("QR Code","Data init");
-                        getQrCodeImage(new OnBitmapReceivedListener() {
+                        Log.d("QR Code", "Data init");
+                        loadQrCodeImage(new OnBitmapReceivedListener() {
                             @Override
                             public void onBitmapReceived(Bitmap bitmap) {
-                                if (bitmap != null){
+                                if (bitmap != null) {
                                     qrCodeImage = bitmap;
                                 }
                                 listener.onDataLoaded();
@@ -154,6 +161,12 @@ public class QRCode {
 
     }
 
+    /**
+     * Updates all of the fields of the QRCode class from the database
+     * It will also move on to load the actual QR image
+     *
+     * @param listener The listener to determine when data is received
+     */
     public void UpdateAllDataFields(QRCode.NewCodeListener listener) {
         // Get the data in the document
         qrCodeDocRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -188,7 +201,12 @@ public class QRCode {
     }
 
 
-    public void getQrCodeImage(QRCode.OnBitmapReceivedListener listener) {
+    /**
+     * Loads a QR code image from Firebase Storage
+     *
+     * @param listener The listener for determining when the data transfer is done
+     */
+    public void loadQrCodeImage(QRCode.OnBitmapReceivedListener listener) {
         StorageReference profileImageRef = storageRef.child(imageUID);
 
         // Down load the image
@@ -205,6 +223,11 @@ public class QRCode {
     }
 
 
+    /**
+     * Stores the QR code string in the database
+     *
+     * @param qrString The string to store
+     */
     private void setQrString(String qrString) {
         // Update in the class
         this.qrString = qrString;
@@ -216,6 +239,11 @@ public class QRCode {
     }
 
 
+    /**
+     * Loads the QR code image into the database
+     *
+     * @param qrCodeImage The image to upload
+     */
     private void setQrImage(Bitmap qrCodeImage) {
         // Store the image in the object
         this.qrCodeImage = qrCodeImage;
@@ -235,12 +263,24 @@ public class QRCode {
 
     }
 
+    /**
+     * Gets the string of the QR code
+     *
+     * @return The text stored in the QR code
+     */
     public String getQrString() {
         return this.qrString;
     }
 
 
     // ChatGPT, How would I use ZXing to generate a QR code?
+
+    /**
+     * Generates a QR code from the given text
+     *
+     * @param text The text stored in the QR code
+     * @throws WriterException If the QR code fails to write
+     */
     public void generateCode(String text) throws WriterException {
         // The size of the QR Code
         int qrSize = 400;
@@ -269,13 +309,5 @@ public class QRCode {
 
 
     }
-
-//    public void scanCode(Context context) {
-//        // Switch to the scanning activity and scan
-//        Intent intent = new Intent(context, QRScanner.class);
-//        // Start the activity
-//        context.startActivity(intent);
-//
-//    }
 
 }
