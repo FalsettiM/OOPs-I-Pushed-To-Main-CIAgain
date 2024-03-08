@@ -15,7 +15,7 @@ import com.bumptech.glide.Glide;
 import java.util.List;
 
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> {
-    private List<Bitmap> images;
+    private List<ImageInfo> imageInfos;
     private Context context;
     private OnItemClickListener listener;
 
@@ -24,9 +24,9 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         void onItemClick(int position);
     }
 
-    public ImageAdapter(Context context, List<Bitmap> images, OnItemClickListener listener) {
+    public ImageAdapter(Context context, List<ImageInfo> imageInfos, OnItemClickListener listener) {
         this.context = context;
-        this.images = images;
+        this.imageInfos = imageInfos;
         this.listener = listener;
     }
 
@@ -39,13 +39,15 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
 
     @Override
     public void onBindViewHolder(@NonNull ImageAdapter.ViewHolder holder, int position) {
-        Bitmap image = images.get(position);
-        holder.imageView.setImageBitmap(image);
+        ImageInfo imageInfo = imageInfos.get(position);
+        // For Bitmap:
+        holder.imageView.setImageBitmap(imageInfo.getImage());
+        // If you switch to using URLs with Glide, update here accordingly
     }
 
     @Override
     public int getItemCount() {
-        return images.size();
+        return imageInfos.size();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
