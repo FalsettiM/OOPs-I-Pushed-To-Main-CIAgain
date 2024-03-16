@@ -67,17 +67,13 @@ public class FirebaseAccessUnitTest {
         Map<String, Object> outerData = new HashMap<>();
 
         // Get the data from the outer collection
-        outerData = database.getDataFromFirestore("EVNT-0", null, null);
+        outerData = database.getDataFromFirestore("EVNT-0");
 
         // Print the data
         Log.d("FirebaseAccessTest", "Outer Data: " + outerData.toString());
 
         // Get the data from the inner collection
         Map<String, Object> innerData = new HashMap<>();
-        innerData = database.getDataFromFirestore("EVNT-0", FirebaseInnerCollection.eventPosters, "IMGE-0");
-        Log.d("FirebaseAccessTest", "Inner Data: " + innerData.toString());
-
-        // Test with no data in the document
         innerData = database.getDataFromFirestore("EVNT-0", FirebaseInnerCollection.eventPosters, "IMGE-0");
         Log.d("FirebaseAccessTest", "Inner Data: " + innerData.toString());
 
@@ -92,7 +88,7 @@ public class FirebaseAccessUnitTest {
 //        database.deleteDataFromFirestore("EVNT-0", FirebaseInnerCollection.eventPosters, "IMGE-0");
 
         // Test deleting a main document
-        database.deleteDataFromFirestore("EVNT-0", null, null);
+        database.deleteDataFromFirestore("EVNT-0");
 
         // Test deleting a non existent documen
 //        database.deleteDataFromFirestore("Hi", null, null);
