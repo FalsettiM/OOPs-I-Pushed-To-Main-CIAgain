@@ -78,12 +78,24 @@ public class FirebaseAccessUnitTest {
         Log.d("FirebaseAccessTest", "Inner Data: " + innerData.toString());
 
         // Test with no data in the document
-        innerData = database.getDataFromFirestore("EVNT-0", FirebaseInnerCollection.announcements, "Test");
+        innerData = database.getDataFromFirestore("EVNT-0", FirebaseInnerCollection.eventPosters, "IMGE-0");
         Log.d("FirebaseAccessTest", "Inner Data: " + innerData.toString());
 
         // Test document not found
         assertNull(database.getDataFromFirestore("EVNT-0", FirebaseInnerCollection.announcements, "HHHHH"));
 
+    }
+
+    @Test
+    public void testDeleteDocument() {
+        // Test deleting an inner collection
+//        database.deleteDataFromFirestore("EVNT-0", FirebaseInnerCollection.eventPosters, "IMGE-0");
+
+        // Test deleting a main document
+        database.deleteDataFromFirestore("EVNT-0", null, null);
+
+        // Test deleting a non existent documen
+//        database.deleteDataFromFirestore("Hi", null, null);
     }
 
 
