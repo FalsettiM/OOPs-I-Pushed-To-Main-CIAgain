@@ -6,11 +6,11 @@ import android.util.Log;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-import com.oopsipushedtomain.Database.FirestoreAccessType;
 
 import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
@@ -95,6 +95,7 @@ public class FirebaseAccess {
     }
 
     // Chat GPT: Is there a way to wait until data is confirmed stored in Firebase database using a future
+
     /**
      * Attach a CompletableFuture to a Firebase read/write
      *
@@ -114,10 +115,11 @@ public class FirebaseAccess {
 
     /**
      * Converts a bitmap image to a byte array for storing into the database
+     *
      * @param bitmap The bitmap to convert
      * @return The output byte array
      */
-    public static byte[] bitmapToByteArray(Bitmap bitmap){
+    public static byte[] bitmapToByteArray(Bitmap bitmap) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
 
@@ -130,8 +132,9 @@ public class FirebaseAccess {
     /**
      * Stores data in firestore, given the UID of the document.
      * If it is a new document, it will create a UID
-     * @param docName
-     * @param data
+     *
+     * @param docName The UID of the document to write to
+     * @param data    The data to write to the document
      */
     public void storeDataInFirestore(String docName, Map<String, Object> data) {
         // Set the document reference
@@ -156,7 +159,15 @@ public class FirebaseAccess {
 
     }
 
-    public void storeDataInFirestoreInnerCollection(String outerDocName, FirebaseInnerCollection innerCollName, String innerDocName ,Map<String, Object> data){
+    /**
+     * Stores data in firestore, given the UID of the document and the UID of the inner collection
+     *
+     * @param outerDocName  The UID of the outer document (Ex. Event UID)
+     * @param innerCollName The name of the inner collection
+     * @param innerDocName  The UID of the inner document (Ex. eventPosters)
+     * @param data          The data to write to the inner document
+     */
+    public void storeDataInFirestoreInnerCollection(String outerDocName, FirebaseInnerCollection innerCollName, String innerDocName, Map<String, Object> data) {
         // Set the document reference
         docRef = collRef.document(outerDocName);
 
@@ -173,7 +184,7 @@ public class FirebaseAccess {
             future.get();
             Log.d("StoreinFirestore", "Inner document has been saved successfully");
         } catch (InterruptedException e) {
-            // Handle the interrupted execption
+            // Handle the interrupted exception
             Thread.currentThread().interrupt();
             Log.e("StoreinFirestore", "Task was interrupted: " + e.getMessage());
         } catch (ExecutionException e) {
@@ -204,12 +215,14 @@ public class FirebaseAccess {
 
         // If no image UID is given, create a new one
         boolean newImage = false;
-        if (imageUID == null){
+        if (imageUID == null) {
             imageUID = "IMGE-" + collRef.document().getId().toUpperCase();
             newImage = true;
         }
 
-        // Store the image into storage
+        /*
+            Store the image into storage
+         */
         // Convert the image to a byte array
         byte[] imageArray = bitmapToByteArray(image);
 
@@ -217,6 +230,7 @@ public class FirebaseAccess {
         UploadTask uploadTask = poolRef.child(imageUID).putBytes(imageArray);
 
         // Convert the Upload task to a CompletableFuture to wait for any tasks to complete
+        // Also convert the output of the upload (TaskSnapshot) to a StorageReference using thenApply()
         CompletableFuture<StorageReference> future = toCompletableFuture(uploadTask).thenApply(taskSnapshot -> poolRef);
 
         // Perform the operation
@@ -226,7 +240,7 @@ public class FirebaseAccess {
             future.get();
             Log.d("StoreinFirebaseStorage", "Image has been saved successfully");
         } catch (InterruptedException e) {
-            // Handle the interrupted execption
+            // Handle the interrupted exception
             Thread.currentThread().interrupt();
             Log.e("StoreinFirebaseStorage", "Task was interrupted: " + e.getMessage());
             return;
@@ -238,14 +252,16 @@ public class FirebaseAccess {
 
         // Image upload complete, if you are updating an image, you are done
         // No need to update the link to the image
-        if (!newImage){
+        if (!newImage) {
             return;
         }
-
         // Otherwise, create the link to the image
 
 
-        // Attach the link to the origin document
+        /*
+            Attach the link to the origin document
+         */
+
         // Create an empty hash map to create just a new document
         HashMap<String, Object> newData = new HashMap<>();
 
@@ -253,11 +269,12 @@ public class FirebaseAccess {
         FirebaseAccess imageAccess = null;
 
         // Create the new document in the appropriate collection
-        switch (this.databaseType){
+        switch (this.databaseType) {
             case EVENTS:
-                switch (imageType){
+                switch (imageType) {
                     case EVENT_POSTER:
-                        imageAccess =  new FirebaseAccess(FirestoreAccessType.IMAGES);;
+                        imageAccess = new FirebaseAccess(FirestoreAccessType.IMAGES);
+                        ;
                         this.storeDataInFirestoreInnerCollection(attachedTo, FirebaseInnerCollection.eventPosters, imageUID, newData);
                     case EVENT_QRCODE:
                         this.storeDataInFirestoreInnerCollection(attachedTo, FirebaseInnerCollection.eventQRCodes, imageUID, newData);
@@ -268,11 +285,13 @@ public class FirebaseAccess {
                 }
             case USERS:
                 this.storeDataInFirestoreInnerCollection(attachedTo, FirebaseInnerCollection.profilePictures, imageUID, newData);
-                imageAccess =  new FirebaseAccess(FirestoreAccessType.IMAGES);
+                imageAccess = new FirebaseAccess(FirestoreAccessType.IMAGES);
         }
 
 
-        // Create the link in the image collection
+        /*
+            Create the link in the image collection
+         */
 
         // Create the map of the data
         HashMap<String, Object> data = new HashMap<>();
@@ -287,4 +306,68 @@ public class FirebaseAccess {
 
 
     }
+
+    // Chat GPT: Can you give me some java code within android to retrieve data from Firestore using a Completable future
+
+    /**
+     * Gets the data from a document and returns it as a map
+     * Assumes there is only one document to return
+     *
+     * @param outerDocName  The UID of the document in the outer collection. If the other inputs are null, will return data from this document
+     * @param innerCollName The name of the inner collection. If this is null, will return data from the outer collection
+     * @param innerDocName  The UID of the document in the inner collection. If this is null, will return data from the outer collection
+     * @return The data in the document, or null if the document was not found
+     */
+    public Map<String, Object> getDataFromFirestore(String outerDocName, FirebaseInnerCollection innerCollName, String innerDocName) {
+        // Get the document reference for the outer main collection
+        docRef = collRef.document(outerDocName);
+
+        Task<DocumentSnapshot> task = null;
+
+        // Get the document from firebase
+        if (innerCollName != null && innerDocName != null){
+            task = docRef.collection(innerCollName.name()).document(innerDocName).get();
+        } else {
+            task = docRef.get();
+        }
+
+
+        // Convert the task to a CompletableFuture
+        CompletableFuture<DocumentSnapshot> future = toCompletableFuture(task);
+
+        // Get the output
+        DocumentSnapshot document = null;
+        try {
+            // Block until data is retrieved
+            document = future.get();
+            Log.d("GetFromFirestore", "Data has been received");
+        } catch (InterruptedException e) {
+            // Handle the interrupted exception
+            Thread.currentThread().interrupt();
+            Log.e("GetFromFirestore", "Task was interrupted: " + e.getMessage());
+            return null;
+        } catch (ExecutionException e) {
+            // Handle any other exception
+            Log.e("GetFromFirestore", "Error retrieving document: " + Objects.requireNonNull(e.getCause()).getMessage());
+            return null;
+        }
+
+        // Data was retrieved successfully
+        Map<String, Object> data = null;
+        if (document != null && document.exists()) {
+            // Get the data from the query - assume only one document with this ID
+            data = document.getData();
+
+            // Attach the document id to the data
+            assert data != null;
+            data.put("UID", document.getId());
+
+        } else {
+            Log.e("GetFromFirestore", "The document does not exist");
+        }
+
+        // Return the received data
+        return data;
+    }
+
 }

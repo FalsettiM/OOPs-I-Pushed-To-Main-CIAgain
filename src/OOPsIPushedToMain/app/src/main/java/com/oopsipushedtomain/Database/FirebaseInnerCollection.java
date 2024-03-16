@@ -5,5 +5,6 @@ public enum FirebaseInnerCollection {
     eventQRCodes,
     promoQRCodes,
     profilePictures,
-    userEvents
+    userEvents,
+    announcements
 }

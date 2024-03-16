@@ -1,21 +1,18 @@
 package com.oopsipushedtomain;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
+
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.oopsipushedtomain.Database.FirebaseAccess;
 import com.oopsipushedtomain.Database.FirebaseInnerCollection;
 import com.oopsipushedtomain.Database.FirestoreAccessType;
 import com.oopsipushedtomain.Database.ImageType;
-
-import org.mockito.Mockito;
-import android.content.res.Resources;
-
-
-import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -64,6 +61,30 @@ public class FirebaseAccessUnitTest {
         database.storeImageInFirebaseStorage("EVNT-0", null, ImageType.PROMO_QRCODE, image);
     }
 
+    @Test
+    public void testGetFromCollection() {
+        // Create data storage
+        Map<String, Object> outerData = new HashMap<>();
+
+        // Get the data from the outer collection
+        outerData = database.getDataFromFirestore("EVNT-0", null, null);
+
+        // Print the data
+        Log.d("FirebaseAccessTest", "Outer Data: " + outerData.toString());
+
+        // Get the data from the inner collection
+        Map<String, Object> innerData = new HashMap<>();
+        innerData = database.getDataFromFirestore("EVNT-0", FirebaseInnerCollection.eventPosters, "IMGE-0");
+        Log.d("FirebaseAccessTest", "Inner Data: " + innerData.toString());
+
+        // Test with no data in the document
+        innerData = database.getDataFromFirestore("EVNT-0", FirebaseInnerCollection.announcements, "Test");
+        Log.d("FirebaseAccessTest", "Inner Data: " + innerData.toString());
+
+        // Test document not found
+        assertNull(database.getDataFromFirestore("EVNT-0", FirebaseInnerCollection.announcements, "HHHHH"));
+
+    }
 
 
 }
