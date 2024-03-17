@@ -134,7 +134,7 @@ public class FirebaseAccess {
      * @param byteArray The byte array to convert
      * @return The bitmap image
      */
-    public static Bitmap byteArraytoBitmap(byte[] byteArray){
+    public static Bitmap byteArraytoBitmap(byte[] byteArray) {
         return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
     }
 
@@ -150,7 +150,7 @@ public class FirebaseAccess {
      * @return The UID of the document, or null if there was an error
      */
     public String storeDataInFirestore(String docName, Map<String, Object> data) {
-        return this.storeDataInFirestore(docName,null, null, data);
+        return this.storeDataInFirestore(docName, null, null, data);
     }
 
     /**
@@ -166,7 +166,7 @@ public class FirebaseAccess {
      */
     public String storeDataInFirestore(String outerDocName, FirebaseInnerCollection innerCollName, String innerDocName, Map<String, Object> data) {
         // If the outerDocName is not given, make a new one
-        if (outerDocName == null){
+        if (outerDocName == null) {
             switch (databaseType) {
                 case EVENTS:
                     outerDocName = "EVNT-" + collRef.document().getId().toUpperCase();
@@ -418,7 +418,8 @@ public class FirebaseAccess {
     /**
      * Retrieves an image from Firebase Storage given the UID and the type of the image.
      * The maximum size of the image is 20MB
-     * @param imageUID The UID/name of the stored image
+     *
+     * @param imageUID  The UID/name of the stored image
      * @param imageType The type of image (Ex. ProfilePicture
      * @return The bitmap image
      */
@@ -452,7 +453,7 @@ public class FirebaseAccess {
 
         // Convert the image to a byte array
         if (imageArray != null) {
-           return byteArraytoBitmap(imageArray);
+            return byteArraytoBitmap(imageArray);
         } else {
             return null;
         }
@@ -498,7 +499,7 @@ public class FirebaseAccess {
             // Delete all documents in the inner collection
             for (FirebaseInnerCollection currColl : innerCollList) {
                 // Get the list of documents in the collection
-                ArrayList<Map<String, Object>> allDocs = this.getAllDocumentsInCollection(outerDocName, currColl);
+                ArrayList<Map<String, Object>> allDocs = this.getAllDocuments(outerDocName, currColl);
 
                 // Go through the list and delete them all
                 if (allDocs != null) {
@@ -548,12 +549,24 @@ public class FirebaseAccess {
     }
 
     /**
+     * Gets the data of all documents in a collection
+     * Assumes the collection is the main collection
+     *
+     * @return The list of document data
+     */
+    public ArrayList<Map<String, Object>> getAllDocuments(){
+        return this.getAllDocuments(null, null);
+    }
+
+
+    /**
      * Gets the list of the data of all documents in a collection
      *
      * @param outerDocName  The UID of the document containing the inner collection, if null gets the data from the main collection
      * @param innerCollName The name of the inner collection, if null gets the data from the main collection
+     * @return The list of document data
      */
-    public ArrayList<Map<String, Object>> getAllDocumentsInCollection(String outerDocName, FirebaseInnerCollection innerCollName) {
+    public ArrayList<Map<String, Object>> getAllDocuments(String outerDocName, FirebaseInnerCollection innerCollName) {
         // Create the get task
         Task<QuerySnapshot> task = null;
 
@@ -616,10 +629,10 @@ public class FirebaseAccess {
      * The reference to the image is also removed from its origin
      * The image link is also deleted
      *
-     * @param imageUID The UID of the image to delete
+     * @param imageUID  The UID of the image to delete
      * @param imageType The type of image (Ex. promoQRCCode)
      */
-    public void deleteImageFromFirebaseStorage(String imageUID, ImageType imageType){
+    public void deleteImageFromFirebaseStorage(String imageUID, ImageType imageType) {
         /*
             Delete the image from Firebase Storage
          */
@@ -638,7 +651,7 @@ public class FirebaseAccess {
 
         // Get a database link to the correct database
         FirebaseAccess database = null;
-        switch (imageType){
+        switch (imageType) {
             case eventPosters:
             case profilePictures:
                 database = new FirebaseAccess(FirestoreAccessType.IMAGES);
@@ -676,6 +689,11 @@ public class FirebaseAccess {
         }
 
     }
+
+    public void getAllImagesFromCollection(){}
+    public void getAllImages(){}
+
+
 
 
 }
