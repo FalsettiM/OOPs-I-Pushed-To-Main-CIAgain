@@ -23,6 +23,7 @@ import java.util.Map;
 public class FirebaseAccessUnitTest {
 
     FirebaseAccess database;
+    String imageUID;
 
     @Before
     public void setUp() {
@@ -48,7 +49,7 @@ public class FirebaseAccessUnitTest {
         data.put("test2", "two");
 
 
-        database.storeDataInFirestoreInnerCollection("EVNT-0", FirebaseInnerCollection.eventPosters, "IMGE-0", data);
+        database.storeDataInFirestore("EVNT-0", FirebaseInnerCollection.eventPosters, "IMGE-0", data);
     }
 
     @Test
@@ -58,7 +59,7 @@ public class FirebaseAccessUnitTest {
         Bitmap image = BitmapFactory.decodeResource(testContext.getResources(), com.oopsipushedtomain.test.R.drawable.test_image);
 
         // Upload to the database
-        database.storeImageInFirebaseStorage("EVNT-0", null, ImageType.PROMO_QRCODE, image);
+        imageUID = database.storeImageInFirebaseStorage("EVNT-0", null, ImageType.promoQRCodes, image);
     }
 
     @Test
@@ -90,8 +91,28 @@ public class FirebaseAccessUnitTest {
         // Test deleting a main document
         database.deleteDataFromFirestore("EVNT-0");
 
-        // Test deleting a non existent documen
-//        database.deleteDataFromFirestore("Hi", null, null);
+        // Test deleting a non existent document
+        database.deleteDataFromFirestore("Hi");
+    }
+
+    @Test
+    public void testGetImage(){
+        // Upload an image
+        testImageUpload();
+
+
+        // Get the image
+        Bitmap image = database.getImageFromFirebaseStorage(imageUID, ImageType.promoQRCodes);
+    }
+
+
+    @Test
+    public void testDeleteImage(){
+        // Upload an image
+        testImageUpload();
+
+        // Delete the image
+        database.deleteImageFromFirebaseStorage(imageUID, ImageType.promoQRCodes);
     }
 
 
