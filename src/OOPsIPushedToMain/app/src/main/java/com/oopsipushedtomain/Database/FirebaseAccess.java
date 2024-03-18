@@ -49,20 +49,20 @@ public class FirebaseAccess {
      * A reference to the document
      */
     private DocumentReference docRef = null;
-    /**
-     * A reference to the inner collection (if applicable)
-     */
-    private CollectionReference innerCollRef = null;
 
     /**
      * A reference to Firebase Storage
      */
     private FirebaseStorage storage = null;
+
     /**
      * A reference to the selected storage pool
      */
     private StorageReference poolRef = null;
 
+    /**
+     * The type of the database access (Ex. Events)
+     */
     private FirestoreAccessType databaseType;
 
     /**
@@ -102,7 +102,6 @@ public class FirebaseAccess {
     }
 
     // Chat GPT: Is there a way to wait until data is confirmed stored in Firebase database using a future
-
     /**
      * Attach a CompletableFuture to a Firebase read/write
      *
@@ -121,7 +120,7 @@ public class FirebaseAccess {
     }
 
     /**
-     * Converts a bitmap image to a byte array for storing into the database
+     * Converts a bitmap image to a byte array
      *
      * @param bitmap The bitmap to convert
      * @return The output byte array
@@ -145,10 +144,10 @@ public class FirebaseAccess {
 
 
     // Chat GPT: Is there a way to wait until data is confirmed stored in Firebase database using a future
-
     /**
-     * Stores data in firestore, given the UID of the document.
+     * Stores data in Firestore, given the UID of the document.
      * If it is a new document, it will create a UID
+     * Assumes the document is an outer document
      *
      * @param docName The UID of the document to write to
      * @param data    The data to write to the document
@@ -159,7 +158,7 @@ public class FirebaseAccess {
     }
 
     /**
-     * Stores data in firestore, given the UID of the document and inner collection/document if needed
+     * Stores data in Firestore, given the UID of the document and inner collection/document if needed
      * If the inner document or collection are null, the data is stored in the outer document
      * If the outer doc name is not given, make a new one
      *
@@ -224,7 +223,7 @@ public class FirebaseAccess {
     }
 
     /**
-     * Saves an image to the database and creates a link to the image file if necessary
+     * Saves an image to Firebase Storage and creates the links to it in Firestore
      *
      * @param attachedTo The UID/name of the document this image is linked to. Ex: USER-0000000000
      * @param imageUID   The UID/name of the image (will create new if null)
@@ -440,7 +439,7 @@ public class FirebaseAccess {
      *
      * @return The bitmap image
      */
-    private Bitmap getDataFromFirebaseStorage(StorageReference storageReference){
+    private Bitmap getDataFromFirebaseStorage(StorageReference storageReference) {
         // Create a task to get the image as a byte array
         final long TWENTY_MEGABYTE = 20 * 1024 * 1024;
         Task<byte[]> task = storageReference.getBytes(TWENTY_MEGABYTE);
@@ -568,7 +567,7 @@ public class FirebaseAccess {
      *
      * @return The list of document data
      */
-    public ArrayList<Map<String, Object>> getAllDocuments(){
+    public ArrayList<Map<String, Object>> getAllDocuments() {
         return this.getAllDocuments(null, null);
     }
 
@@ -708,8 +707,8 @@ public class FirebaseAccess {
     /**
      * Gets all the images contained in a Firestore collection
      *
-     * @param outerDocName  The UID of the document containing the inner collection, if null gets the data from the main collection
-     * @param imageType The the type of image you want to retrieve, if null gets the data from the main collection
+     * @param outerDocName The UID of the document containing the inner collection, if null gets the data from the main collection
+     * @param imageType    The the type of image you want to retrieve, if null gets the data from the main collection
      * @return The list of images and UIDs as a Map, or null if no images were found
      */
     public ArrayList<Map<String, Object>> getAllRelatedImagesFromFirebaseStorage(String outerDocName, ImageType imageType) {
@@ -724,7 +723,7 @@ public class FirebaseAccess {
 
         // Get the images from Firebase Storage
         ArrayList<Map<String, Object>> outList = new ArrayList<>();
-        for (Map<String, Object> filePointer : data){
+        for (Map<String, Object> filePointer : data) {
             // Create the map
             HashMap<String, Object> outData = new HashMap<>();
 
@@ -740,7 +739,7 @@ public class FirebaseAccess {
         }
 
         // Return the list of images
-        if (outList.isEmpty()){
+        if (outList.isEmpty()) {
             return null;
         } else {
             return outList;
@@ -748,6 +747,7 @@ public class FirebaseAccess {
     }
 
     // ChatGPT: What If i want to get all the images in a folder
+
     /**
      * Gets all the images of a specific type from Firebase Storage
      *
@@ -786,7 +786,7 @@ public class FirebaseAccess {
 
 
         // Get the actual images from Firebase Storage
-        for(StorageReference storageReference : dataArray) {
+        for (StorageReference storageReference : dataArray) {
             // Create the map
             HashMap<String, Object> outData = new HashMap<>();
 
@@ -801,7 +801,7 @@ public class FirebaseAccess {
         }
 
         // Return the list of images
-        if (outList.isEmpty()){
+        if (outList.isEmpty()) {
             return null;
         } else {
             return outList;
