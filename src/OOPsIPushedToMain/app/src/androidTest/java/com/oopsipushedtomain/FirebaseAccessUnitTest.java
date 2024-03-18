@@ -17,6 +17,7 @@ import com.oopsipushedtomain.Database.ImageType;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -113,6 +114,30 @@ public class FirebaseAccessUnitTest {
 
         // Delete the image
         database.deleteImageFromFirebaseStorage(imageUID, ImageType.promoQRCodes);
+    }
+
+    @Test
+    public void testGetAllRelatedImages(){
+        // Upload an image
+        testImageUpload();
+
+        // Get all the images
+        ArrayList<Map<String, Object>> data = database.getAllRelatedImagesFromFirebaseStorage("EVNT-0", ImageType.promoQRCodes);
+
+        // Print out the data
+        Log.d("Testing", "Data: " + data);
+    }
+
+    @Test
+    public void testGetAllImages() {
+        // Upload an image
+        testImageUpload();
+
+        // Get all the images
+        ArrayList<Map<String, Object>> data = database.getAllImagesFromFirebaseStorage(ImageType.promoQRCodes);
+
+        // Print out the data
+        Log.d("Testing", "Data: " + data);
     }
 
 

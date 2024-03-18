@@ -12,12 +12,17 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.ListResult;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import org.checkerframework.checker.units.qual.A;
+
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -313,7 +318,6 @@ public class FirebaseAccess {
                 }
                 break;
             case USERS:
-                Log.d("Testing", "WHY??");
                 this.storeDataInFirestore(attachedTo, FirebaseInnerCollection.profilePictures, imageUID, newData);
                 imageAccess = new FirebaseAccess(FirestoreAccessType.IMAGES);
                 break;
@@ -427,9 +431,19 @@ public class FirebaseAccess {
         // Create a reference to the correct storage pool
         StorageReference imageRef = poolRef.child(imageType.name()).child(imageUID);
 
+        return getDataFromFirebaseStorage(imageRef);
+    }
+
+    /**
+     * Retrieves an image from Firebase Storage given the StorageReference
+     * The maximum size of the image is 20MB
+     *
+     * @return The bitmap image
+     */
+    private Bitmap getDataFromFirebaseStorage(StorageReference storageReference){
         // Create a task to get the image as a byte array
         final long TWENTY_MEGABYTE = 20 * 1024 * 1024;
-        Task<byte[]> task = imageRef.getBytes(TWENTY_MEGABYTE);
+        Task<byte[]> task = storageReference.getBytes(TWENTY_MEGABYTE);
 
         // Convert the task to a completable future
         CompletableFuture<byte[]> future = toCompletableFuture(task);
@@ -451,7 +465,7 @@ public class FirebaseAccess {
             return null;
         }
 
-        // Convert the image to a byte array
+        // Convert the image to a Bitmap
         if (imageArray != null) {
             return byteArraytoBitmap(imageArray);
         } else {
@@ -690,10 +704,108 @@ public class FirebaseAccess {
 
     }
 
-    public void getAllImagesFromCollection(){}
-    public void getAllImages(){}
+
+    /**
+     * Gets all the images contained in a Firestore collection
+     *
+     * @param outerDocName  The UID of the document containing the inner collection, if null gets the data from the main collection
+     * @param imageType The the type of image you want to retrieve, if null gets the data from the main collection
+     * @return The list of images and UIDs as a Map, or null if no images were found
+     */
+    public ArrayList<Map<String, Object>> getAllRelatedImagesFromFirebaseStorage(String outerDocName, ImageType imageType) {
+        // Convert the ImageType to a FirebaseInnerCollection
+        FirebaseInnerCollection innerColl = FirebaseInnerCollection.valueOf(imageType.name());
+        Log.d("Testing2", innerColl.name());
+
+        // Get all the documents from the given collection
+        ArrayList<Map<String, Object>> data = this.getAllDocuments(outerDocName, innerColl);
+        Log.d("Testing2", data.toString());
 
 
+        // Get the images from Firebase Storage
+        ArrayList<Map<String, Object>> outList = new ArrayList<>();
+        for (Map<String, Object> filePointer : data){
+            // Create the map
+            HashMap<String, Object> outData = new HashMap<>();
 
+            // Get the UID
+            outData.put("UID", filePointer.get("UID"));
+            Log.d("Testing2", (String) filePointer.get("UID"));
+
+            // Get the image
+            outData.put("image", this.getImageFromFirebaseStorage((String) filePointer.get("UID"), imageType));
+
+            // Put the map in the list
+            outList.add(outData);
+        }
+
+        // Return the list of images
+        if (outList.isEmpty()){
+            return null;
+        } else {
+            return outList;
+        }
+    }
+
+    // ChatGPT: What If i want to get all the images in a folder
+    /**
+     * Gets all the images of a specific type from Firebase Storage
+     *
+     * @param imageType The type of images to get
+     * @return The list of images and UIDs as a Map, or null if no images were found
+     */
+    public ArrayList<Map<String, Object>> getAllImagesFromFirebaseStorage(ImageType imageType) {
+        // Create a reference to the folder to get all the images from
+        StorageReference storeRef = poolRef.child(imageType.name());
+
+        // Create the output list
+        ArrayList<Map<String, Object>> outList = new ArrayList<>();
+
+        // Create a task to get a list of all images in a folder
+        Task<ListResult> task = storeRef.listAll();
+
+        // Convert the task into a CompletableFuture and convert the output to a list of storage references
+        CompletableFuture<List<StorageReference>> future = toCompletableFuture(task).thenApply(ListResult::getItems);
+
+        // Get the output
+        List<StorageReference> dataArray = null;
+        try {
+            // Block until data is retrieved
+            dataArray = future.get();
+            Log.d("GetAllImagesFromFirebaseStorage", "Data has been received");
+        } catch (InterruptedException e) {
+            // Handle the interrupted exception
+            Thread.currentThread().interrupt();
+            Log.e("GetAllImagesFromFirebaseStorage", "Task was interrupted: " + e.getMessage());
+            return null;
+        } catch (ExecutionException e) {
+            // Handle any other exception
+            Log.e("GetAllImagesFromFirebaseStorage", "Error retrieving images: " + Objects.requireNonNull(e.getCause()).getMessage());
+            return null;
+        }
+
+
+        // Get the actual images from Firebase Storage
+        for(StorageReference storageReference : dataArray) {
+            // Create the map
+            HashMap<String, Object> outData = new HashMap<>();
+
+            // Get the UID
+            outData.put("UID", storageReference.getName());
+
+            // Get the image
+            outData.put("image", this.getDataFromFirebaseStorage(storageReference));
+
+            // Put the map in the list
+            outList.add(outData);
+        }
+
+        // Return the list of images
+        if (outList.isEmpty()){
+            return null;
+        } else {
+            return outList;
+        }
+    }
 
 }
