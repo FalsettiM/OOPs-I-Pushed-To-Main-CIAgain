@@ -738,4 +738,29 @@ public class FirebaseAccess {
 
     }
 
+    /**
+     * This function is callable from any access
+     * DELETES ALL DOCUMENTS ACROSS ALL COLLECTIONS
+     */
+    public void deleteAllDataInFireStore(){
+        // Create an array list of all collections
+        ArrayList<FirebaseAccess> databases = new ArrayList<>();
+
+        // Add collections to the list
+        for (FirestoreAccessType access : FirestoreAccessType.values()){
+            databases.add(new FirebaseAccess(access));
+        }
+
+        // For each collection
+        for (FirebaseAccess database : databases){
+            // Find all documents
+            ArrayList<Map<String, Object>> data = database.getAllDocuments();
+
+            // Delete each document
+            for (Map<String, Object> document : data){
+                database.deleteDataFromFirestore((String) document.get("UID"));
+            }
+        }
+    }
+
 }

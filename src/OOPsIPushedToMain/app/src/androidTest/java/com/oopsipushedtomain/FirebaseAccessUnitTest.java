@@ -23,9 +23,28 @@ import java.util.Map;
 
 public class FirebaseAccessUnitTest {
 
+    /**
+     * The object being tested
+     */
     FirebaseAccess database;
+
+    /**
+     * The UID of the stored image
+     */
     String imageUID;
 
+    /**
+     * The UID of the event used for testing
+     */
+    String eventUID;
+
+    /**
+     * The
+     */
+
+    /**
+     * Set up for testing the database access
+     */
     @Before
     public void setUp() {
         database = new FirebaseAccess(FirestoreAccessType.EVENTS);
@@ -138,6 +157,12 @@ public class FirebaseAccessUnitTest {
 
         // Print out the data
         Log.d("Testing", "Data: " + data);
+    }
+
+    @Test
+    public void testDeleteAll(){
+        // Delete everything in the database
+        database.deleteAllDataInFireStore();
     }
 
 
