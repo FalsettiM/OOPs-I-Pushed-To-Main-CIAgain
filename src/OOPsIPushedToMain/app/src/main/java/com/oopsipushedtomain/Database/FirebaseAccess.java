@@ -602,6 +602,11 @@ public class FirebaseAccess {
                 // Get the data from the document
                 docData = document.getData();
 
+                // Check if the document is the init document
+                if (document.getId().equals("XXXX")){
+                    continue;
+                }
+
                 // Attach the UID
                 docData.put("UID", document.getId());
 
@@ -760,7 +765,18 @@ public class FirebaseAccess {
             for (Map<String, Object> document : data){
                 database.deleteDataFromFirestore((String) document.get("UID"));
             }
+
+            // Re-initialize the collections
+            Map<String, Object> newData = new HashMap<>();
+            database.storeDataInFirestore("XXXX", newData);
+
+
         }
+
+
+
+
+
     }
 
 }
