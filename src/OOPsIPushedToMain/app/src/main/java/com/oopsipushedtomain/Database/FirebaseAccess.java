@@ -106,27 +106,51 @@ public class FirebaseAccess {
      * @return The output Blob
      */
     public static Blob bitmapToBlob(Bitmap bitmap) {
-        // Convert the bitmap to a byte array
+        // Try to compress to PNG
+        boolean imageCompressed = false;
+        byte[] bitmapBytes = null;
+
+        // Create a new output
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-        // Iteratively compress the image until the minimum size is reached
-        boolean imageCompressed = false;
+        // Compress
+        Log.d("Image Compression", "Compressing to PNG");
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+        bitmapBytes = baos.toByteArray();
+
+        // Check if the required size is reached
+//        Log.d("Image Compression", "Size: " + bitmapBytes.length);
+        if (bitmapBytes.length <= 1048487){
+            imageCompressed = true;
+        }
+
+
+
+        // Try to compress to JPEG if image is not small enough
         int quality = 100;
-        byte[] bitmapBytes = null;
         while (!imageCompressed){
-            Log.d("Image Compression", "Compressing at quality " + quality);
-            bitmap.compress(Bitmap.CompressFormat.PNG, 0, baos);
+            // Create a new output
+            baos = new ByteArrayOutputStream();
+
+            Log.d("Image Compression", "Compressing JPEG at quality " + quality);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, baos);
             bitmapBytes = baos.toByteArray();
 
             // Check if the required size is reached
-            if (bitmapBytes.length <= 1048487000){
+//            Log.d("Image Compression", "Size: " + bitmapBytes.length);
+            if (bitmapBytes.length <= 1048487){
                 imageCompressed = true;
             } else {
+                if (quality == 0){
+                    break;
+                }
                 quality = quality/2;
             }
 
         }
-        // Convert the byte array to Base64
+
+
+        // Convert the byte array to a Blob
         return Blob.fromBytes(bitmapBytes);
     }
 
