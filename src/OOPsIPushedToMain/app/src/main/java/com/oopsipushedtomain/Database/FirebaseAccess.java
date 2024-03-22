@@ -5,24 +5,17 @@ import android.graphics.BitmapFactory;
 import android.util.Log;
 
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.Blob;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.ListResult;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
-
-import org.checkerframework.checker.units.qual.A;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -38,27 +31,14 @@ import java.util.concurrent.ExecutionException;
 public class FirebaseAccess {
 
     /**
-     * A reference to the Firestore database
-     */
-    private FirebaseFirestore db = null;
-    /**
      * A reference to the collection
      */
     private CollectionReference collRef = null;
+
     /**
      * A reference to the document
      */
     private DocumentReference docRef = null;
-
-    /**
-     * A reference to Firebase Storage
-     */
-    private FirebaseStorage storage = null;
-
-    /**
-     * A reference to the selected storage pool
-     */
-    private StorageReference poolRef = null;
 
     /**
      * The type of the database access (Ex. Events)
@@ -75,11 +55,7 @@ public class FirebaseAccess {
         this.databaseType = databaseType;
 
         // Set the database reference (same for the entire database)
-        db = FirebaseFirestore.getInstance();
-
-        // Set the storage reference (same for the entire database)
-        storage = FirebaseStorage.getInstance();
-        poolRef = storage.getReference();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         // Set the collection
         switch (databaseType) {
@@ -102,6 +78,7 @@ public class FirebaseAccess {
     }
 
     // Chat GPT: Is there a way to wait until data is confirmed stored in Firebase database using a future
+
     /**
      * Attach a CompletableFuture to a Firebase read/write
      *
@@ -119,31 +96,57 @@ public class FirebaseAccess {
         return future;
     }
 
+    // ChatGPT: What is the best way to convert a bitmap into a string
+    // ChatGPT: Is there a more compressed encoding? Can Firestore store a byte array?
+
     /**
-     * Converts a bitmap image to a byte array
+     * Converts a bitmap image to a Blob
      *
      * @param bitmap The bitmap to convert
-     * @return The output byte array
+     * @return The output Blob
      */
-    public static byte[] bitmapToByteArray(Bitmap bitmap) {
+    public static Blob bitmapToBlob(Bitmap bitmap) {
+        // Convert the bitmap to a byte array
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
 
-        return baos.toByteArray();
+        // Iteratively compress the image until the minimum size is reached
+        boolean imageCompressed = false;
+        int quality = 100;
+        byte[] bitmapBytes = null;
+        while (!imageCompressed){
+            Log.d("Image Compression", "Compressing at quality " + quality);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 0, baos);
+            bitmapBytes = baos.toByteArray();
+
+            // Check if the required size is reached
+            if (bitmapBytes.length <= 1048487000){
+                imageCompressed = true;
+            } else {
+                quality = quality/2;
+            }
+
+        }
+        // Convert the byte array to Base64
+        return Blob.fromBytes(bitmapBytes);
     }
 
     /**
-     * Converts a byte array to a bitmap image
+     * Converts a Blob to a bitmap image
      *
-     * @param byteArray The byte array to convert
+     * @param imageBlob The Blob to convert
      * @return The bitmap image
      */
-    public static Bitmap byteArraytoBitmap(byte[] byteArray) {
+    public static Bitmap blobToBitmap(Blob imageBlob) {
+        // Convert the string to a byte array
+        byte[] byteArray = imageBlob.toBytes();
+
+        // Convert the byte array back to a bitmap
         return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
     }
 
 
     // Chat GPT: Is there a way to wait until data is confirmed stored in Firebase database using a future
+
     /**
      * Stores data in Firestore, given the UID of the document.
      * If it is a new document, it will create a UID
@@ -223,7 +226,7 @@ public class FirebaseAccess {
     }
 
     /**
-     * Saves an image to Firebase Storage and creates the links to it in Firestore
+     * Saves an image to firestore and creates a link to it
      *
      * @param attachedTo The UID/name of the document this image is linked to. Ex: USER-0000000000
      * @param imageUID   The UID/name of the image (will create new if null)
@@ -231,7 +234,22 @@ public class FirebaseAccess {
      * @param image      The image to upload
      * @return The UID of the image or null if there was an error
      */
-    public String storeImageInFirebaseStorage(String attachedTo, String imageUID, ImageType imageType, Bitmap image) {
+    public String storeImageInFirestore(String attachedTo, String imageUID, ImageType imageType, Bitmap image) {
+        return storeImageInFirestore(attachedTo, imageUID, imageType, image, null);
+    }
+
+    /**
+     * Saves an image to firestore and creates a link to it
+     * Also allows for attaching extra data to the image
+     *
+     * @param attachedTo The UID/name of the document this image is linked to. Ex: USER-0000000000
+     * @param imageUID   The UID/name of the image (will create new if null)
+     * @param imageType  The type of image you are uploading (only used for events)
+     * @param image      The image to upload
+     * @param imageData       Any other data to add to the image
+     * @return The UID of the image or null if there was an error
+     */
+    public String storeImageInFirestore(String attachedTo, String imageUID, ImageType imageType, Bitmap image, Map<String, Object> imageData) {
         // Check if this the constructor database parameters are correct
         boolean isValidDatabase = this.databaseType == FirestoreAccessType.USERS || this.databaseType == FirestoreAccessType.EVENTS;
 
@@ -240,107 +258,75 @@ public class FirebaseAccess {
             throw new IllegalArgumentException("This object is not valid for storing images");
         }
 
+        // Check if extra data exists
+        if (imageData == null){
+            imageData = new HashMap<>();
+        }
+
         // Database is valid, set the document reference for the origin document
         docRef = collRef.document(attachedTo);
 
         // If no image UID is given, create a new one
         boolean newImage = false;
         if (imageUID == null) {
-            imageUID = "IMGE-" + collRef.document().getId().toUpperCase();
-            newImage = true;
+            if (imageType == ImageType.eventPosters || imageType == ImageType.profilePictures) {
+                imageUID = "IMGE-" + collRef.document().getId().toUpperCase();
+            } else if (imageType == ImageType.eventQRCodes || imageType == ImageType.promoQRCodes) {
+                imageUID = "QRCD-" + collRef.document().getId().toUpperCase();
+            }
         }
 
-        /*
-            Store the image into storage
-         */
-        // Convert the image to a byte array
-        byte[] imageArray = bitmapToByteArray(image);
+        // Convert the image to a Blob
+        Blob imageBlob = bitmapToBlob(image);
 
-        // Create the upload task to upload to storage
-        UploadTask uploadTask = poolRef.child(imageType.name()).child(imageUID).putBytes(imageArray);
-
-        // Convert the Upload task to a CompletableFuture to wait for any tasks to complete
-        // Also convert the output of the upload (TaskSnapshot) to a StorageReference using thenApply()
-        CompletableFuture<StorageReference> future = toCompletableFuture(uploadTask).thenApply(taskSnapshot -> poolRef);
-
-        // Perform the operation
-        // Catch any errors
-        try {
-            // Block until data is written
-            future.get();
-            Log.d("StoreinFirebaseStorage", "Image has been saved successfully");
-        } catch (InterruptedException e) {
-            // Handle the interrupted exception
-            Thread.currentThread().interrupt();
-            Log.e("StoreinFirebaseStorage", "Task was interrupted: " + e.getMessage());
-            return null;
-        } catch (ExecutionException e) {
-            // Handle any other exception
-            Log.e("StoreinFirebaseStorage", "Error writing image: " + Objects.requireNonNull(e.getCause()).getMessage());
-            return null;
+        if (imageBlob.toBytes().length > 1048487){
+            // Image is too large
+            throw new IllegalArgumentException("Image is too large: " + imageBlob.toBytes().length + " bytes.");
         }
 
-        // Image upload complete, if you are updating an image, you are done
-        // No need to update the link to the image
-        if (!newImage) {
-            return imageUID;
-        }
-        // Otherwise, create the link to the image
+        // Empty map for forcing document creation in origin
+        HashMap<String, Object> originData = new HashMap<>();
 
+        // Map for the data in the appropriate images collection
+        imageData.put("image", imageBlob);
+        imageData.put("origin", attachedTo);
+        imageData.put("type", imageType.name());
 
-        /*
-            Attach the link to the origin document
-         */
-
-        // Create an empty hash map to create just a new document
-        HashMap<String, Object> newData = new HashMap<>();
-
-        // Get a reference to the images collection for creating the link later
+        // The access to the correct image database
         FirebaseAccess imageAccess = null;
 
-        // Create the new document in the appropriate collection
+
+        // Get the correct database to store the image and store the origin in the correct inner collection
         switch (this.databaseType) {
             case EVENTS:
                 switch (imageType) {
                     case eventPosters:
                         imageAccess = new FirebaseAccess(FirestoreAccessType.IMAGES);
-                        this.storeDataInFirestore(attachedTo, FirebaseInnerCollection.eventPosters, imageUID, newData);
+                        this.storeDataInFirestore(attachedTo, FirebaseInnerCollection.eventPosters, imageUID, originData);
                         break;
                     case eventQRCodes:
-                        this.storeDataInFirestore(attachedTo, FirebaseInnerCollection.eventQRCodes, imageUID, newData);
+                        this.storeDataInFirestore(attachedTo, FirebaseInnerCollection.eventQRCodes, imageUID, originData);
                         imageAccess = new FirebaseAccess(FirestoreAccessType.QRCODES);
                         break;
                     case promoQRCodes:
-                        this.storeDataInFirestore(attachedTo, FirebaseInnerCollection.promoQRCodes, imageUID, newData);
+                        this.storeDataInFirestore(attachedTo, FirebaseInnerCollection.promoQRCodes, imageUID, originData);
                         imageAccess = new FirebaseAccess(FirestoreAccessType.QRCODES);
                         break;
                 }
                 break;
             case USERS:
-                this.storeDataInFirestore(attachedTo, FirebaseInnerCollection.profilePictures, imageUID, newData);
+                this.storeDataInFirestore(attachedTo, FirebaseInnerCollection.profilePictures, imageUID, originData);
                 imageAccess = new FirebaseAccess(FirestoreAccessType.IMAGES);
                 break;
         }
 
 
-        /*
-            Create the link in the image collection
-         */
-
-        // Create the map of the data
-        HashMap<String, Object> data = new HashMap<>();
-
-        // Add the relevant data for the link
-        data.put("origin", attachedTo);
-        data.put("image", imageUID);
-
-        // Create the link
+        // Store the image in the database
         assert imageAccess != null;
-        imageAccess.storeDataInFirestore(imageUID, data);
+        imageAccess.storeDataInFirestore(imageUID, imageData);
 
-        // Return the UID of the image
+        // Return the imageUID
         return imageUID;
-
 
     }
 
@@ -419,57 +405,29 @@ public class FirebaseAccess {
     }
 
     /**
-     * Retrieves an image from Firebase Storage given the UID and the type of the image.
-     * The maximum size of the image is 20MB
+     * Gets an image from Firestore
      *
-     * @param imageUID  The UID/name of the stored image
-     * @param imageType The type of image (Ex. ProfilePicture
-     * @return The bitmap image
+     * @param imageUID  The UID of the image
+     * @param imageType The type of the image
+     * @return The image as a bitmap
      */
-    public Bitmap getImageFromFirebaseStorage(String imageUID, ImageType imageType) {
-        // Create a reference to the correct storage pool
-        StorageReference imageRef = poolRef.child(imageType.name()).child(imageUID);
+    public Bitmap getImageFromFirestore(String imageUID, ImageType imageType) {
+        Blob imageBlob = null;
 
-        return getDataFromFirebaseStorage(imageRef);
-    }
-
-    /**
-     * Retrieves an image from Firebase Storage given the StorageReference
-     * The maximum size of the image is 20MB
-     *
-     * @return The bitmap image
-     */
-    private Bitmap getDataFromFirebaseStorage(StorageReference storageReference) {
-        // Create a task to get the image as a byte array
-        final long TWENTY_MEGABYTE = 20 * 1024 * 1024;
-        Task<byte[]> task = storageReference.getBytes(TWENTY_MEGABYTE);
-
-        // Convert the task to a completable future
-        CompletableFuture<byte[]> future = toCompletableFuture(task);
-
-        // Get the output
-        byte[] imageArray = null;
-        try {
-            // Block until data is retrieved
-            imageArray = future.get();
-            Log.d("GetImageFromFirestore", "Data has been received");
-        } catch (InterruptedException e) {
-            // Handle the interrupted exception
-            Thread.currentThread().interrupt();
-            Log.e("GetImageFromFirestore", "Task was interrupted: " + e.getMessage());
-            return null;
-        } catch (ExecutionException e) {
-            // Handle any other exception
-            Log.e("GetImageFromFirestore", "Error retrieving image: " + Objects.requireNonNull(e.getCause()).getMessage());
-            return null;
+        // Find the correct image collection
+        FirebaseAccess database = null;
+        if (imageType == ImageType.eventPosters || imageType == ImageType.profilePictures) {
+            database = new FirebaseAccess(FirestoreAccessType.IMAGES);
+        } else if (imageType == ImageType.eventQRCodes || imageType == ImageType.promoQRCodes) {
+            database = new FirebaseAccess(FirestoreAccessType.QRCODES);
         }
 
-        // Convert the image to a Bitmap
-        if (imageArray != null) {
-            return byteArraytoBitmap(imageArray);
-        } else {
-            return null;
-        }
+        // Get the image
+        assert database != null;
+        Map<String, Object> data = database.getDataFromFirestore(imageUID);
+
+        // Get the blob from the data and convert to an bitmap
+        return blobToBitmap((Blob) Objects.requireNonNull(data.get("image")));
     }
 
 
@@ -477,6 +435,7 @@ public class FirebaseAccess {
      * Deletes a document from Firestore
      * Deletes all inner collections before deleting the outer document
      * Assumes the document UID entered is a outer document
+     * Assumes any linked objects were already deleted
      *
      * @param docName The UID of the outer document to delete
      */
@@ -638,87 +597,54 @@ public class FirebaseAccess {
     }
 
     /**
-     * Deletes an image from Firebase Storage
+     * Deletes an image from Firestore
      * The reference to the image is also removed from its origin
      * The image link is also deleted
      *
      * @param imageUID  The UID of the image to delete
      * @param imageType The type of image (Ex. promoQRCCode)
      */
-    public void deleteImageFromFirebaseStorage(String imageUID, ImageType imageType) {
-        /*
-            Delete the image from Firebase Storage
-         */
-        // Get a reference to the correct image
-        StorageReference imageRef = poolRef.child(imageType.name()).child(imageUID);
+    public void deleteImageFromFirestore(String outerDocName, String imageUID, ImageType imageType) {
+        // Check if the database is valid to delete images
+        if (databaseType == FirestoreAccessType.IMAGES || databaseType == FirestoreAccessType.QRCODES) {
+            // You shouldn't be calling this function on here
+            Log.e("DeleteImage", "Incorrect database type");
+            throw new IllegalArgumentException("Incorrect database type");
+        }
 
-        // Create a task to delete the image
-        Task<Void> task = imageRef.delete();
+        // Convert the ImageType to a FirebaseInnerCollection
+        FirebaseInnerCollection innerColl = FirebaseInnerCollection.valueOf(imageType.name());
 
-        // Convert the task to a CompletableFuture
-        CompletableFuture<Void> future = toCompletableFuture(task);
+        // Delete the link to the image from the origin
+        this.deleteDataFromFirestore(outerDocName, innerColl, imageUID);
 
-        /*
-            Delete image links
-         */
-
-        // Get a database link to the correct database
+        // Find the correct images database
         FirebaseAccess database = null;
-        switch (imageType) {
-            case eventPosters:
-            case profilePictures:
-                database = new FirebaseAccess(FirestoreAccessType.IMAGES);
-                break;
-            case eventQRCodes:
-            case promoQRCodes:
-                database = new FirebaseAccess(FirestoreAccessType.QRCODES);
-                break;
+        if (imageType == ImageType.eventPosters || imageType == ImageType.profilePictures) {
+            database = new FirebaseAccess(FirestoreAccessType.IMAGES);
+        } else if (imageType == ImageType.eventQRCodes || imageType == ImageType.promoQRCodes) {
+            database = new FirebaseAccess(FirestoreAccessType.QRCODES);
         }
 
-        // Get the data for the image
-        Map<String, Object> data = database.getDataFromFirestore(imageUID);
-
-        // Delete the document linking the origin to the link
-        this.deleteDataFromFirestore((String) data.get("origin"), FirebaseInnerCollection.valueOf(imageType.name()), imageUID);
-
-        // Delete the link
-        database.deleteDataFromFirestore((String) data.get("UID"));
-
-
-        // Wait until the delete operation is complete
-        try {
-            // Block until data is retrieved
-            future.get();
-            Log.d("GetAllFromFirestore", "Data has been received");
-        } catch (InterruptedException e) {
-            // Handle the interrupted exception
-            Thread.currentThread().interrupt();
-            Log.e("GetAllFromFirestore", "Task was interrupted: " + e.getMessage());
-            return;
-        } catch (ExecutionException e) {
-            // Handle any other exception
-            Log.e("GetAllFromFirestore", "Error retrieving documents: " + Objects.requireNonNull(e.getCause()).getMessage());
-            return;
-        }
+        // Delete the image from the database
+        database.deleteDataFromFirestore(imageUID);
 
     }
 
 
     /**
-     * Gets all the images contained in a Firestore collection
+     * Gets all the images contained in a Firestore inner collection
      *
      * @param outerDocName The UID of the document containing the inner collection, if null gets the data from the main collection
      * @param imageType    The the type of image you want to retrieve, if null gets the data from the main collection
      * @return The list of images and UIDs as a Map, or null if no images were found
      */
-    public ArrayList<Map<String, Object>> getAllRelatedImagesFromFirebaseStorage(String outerDocName, ImageType imageType) {
+    public ArrayList<Map<String, Object>> getAllRelatedImagesFromFirestore(String outerDocName, ImageType imageType) {
         // Convert the ImageType to a FirebaseInnerCollection
         FirebaseInnerCollection innerColl = FirebaseInnerCollection.valueOf(imageType.name());
-        Log.d("Testing2", innerColl.name());
 
         // Get all the documents from the given collection
         ArrayList<Map<String, Object>> data = this.getAllDocuments(outerDocName, innerColl);
-        Log.d("Testing2", data.toString());
 
 
         // Get the images from Firebase Storage
@@ -729,10 +655,9 @@ public class FirebaseAccess {
 
             // Get the UID
             outData.put("UID", filePointer.get("UID"));
-            Log.d("Testing2", (String) filePointer.get("UID"));
 
             // Get the image
-            outData.put("image", this.getImageFromFirebaseStorage((String) filePointer.get("UID"), imageType));
+            outData.put("image", this.getImageFromFirestore((String) filePointer.get("UID"), imageType));
 
             // Put the map in the list
             outList.add(outData);
@@ -746,58 +671,37 @@ public class FirebaseAccess {
         }
     }
 
-    // ChatGPT: What If i want to get all the images in a folder
 
     /**
-     * Gets all the images of a specific type from Firebase Storage
+     * Gets all the images of a specific type from Firestore
      *
      * @param imageType The type of images to get
      * @return The list of images and UIDs as a Map, or null if no images were found
      */
-    public ArrayList<Map<String, Object>> getAllImagesFromFirebaseStorage(ImageType imageType) {
-        // Create a reference to the folder to get all the images from
-        StorageReference storeRef = poolRef.child(imageType.name());
-
-        // Create the output list
-        ArrayList<Map<String, Object>> outList = new ArrayList<>();
-
-        // Create a task to get a list of all images in a folder
-        Task<ListResult> task = storeRef.listAll();
-
-        // Convert the task into a CompletableFuture and convert the output to a list of storage references
-        CompletableFuture<List<StorageReference>> future = toCompletableFuture(task).thenApply(ListResult::getItems);
-
-        // Get the output
-        List<StorageReference> dataArray = null;
-        try {
-            // Block until data is retrieved
-            dataArray = future.get();
-            Log.d("GetAllImagesFromFirebaseStorage", "Data has been received");
-        } catch (InterruptedException e) {
-            // Handle the interrupted exception
-            Thread.currentThread().interrupt();
-            Log.e("GetAllImagesFromFirebaseStorage", "Task was interrupted: " + e.getMessage());
-            return null;
-        } catch (ExecutionException e) {
-            // Handle any other exception
-            Log.e("GetAllImagesFromFirebaseStorage", "Error retrieving images: " + Objects.requireNonNull(e.getCause()).getMessage());
-            return null;
+    public ArrayList<Map<String, Object>> getAllImagesFromFirestore(ImageType imageType) {
+        // Find the correct image collection
+        FirebaseAccess database = null;
+        if (imageType == ImageType.eventPosters || imageType == ImageType.profilePictures) {
+            database = new FirebaseAccess(FirestoreAccessType.IMAGES);
+        } else if (imageType == ImageType.eventQRCodes || imageType == ImageType.promoQRCodes) {
+            database = new FirebaseAccess(FirestoreAccessType.QRCODES);
         }
 
+        // Get all the documents in the database
+        assert database != null;
+        ArrayList<Map<String, Object>> data = database.getAllDocuments();
 
-        // Get the actual images from Firebase Storage
-        for (StorageReference storageReference : dataArray) {
-            // Create the map
-            HashMap<String, Object> outData = new HashMap<>();
+        // Go through the documents and add the ones that match the given type to the output list
+        ArrayList<Map<String, Object>> outList = new ArrayList<>();
+        for (Map<String, Object> potentialImage : data) {
+            // Check if the image matches the type
+            if (potentialImage.get("type") == imageType.name()) {
+                // Convert the image to a bitmap and attach it to the data
+                potentialImage.put("image", blobToBitmap((Blob) Objects.requireNonNull(potentialImage.get("image"))));
 
-            // Get the UID
-            outData.put("UID", storageReference.getName());
-
-            // Get the image
-            outData.put("image", this.getDataFromFirebaseStorage(storageReference));
-
-            // Put the map in the list
-            outList.add(outData);
+                // Add the image to the output
+                outList.add(potentialImage);
+            }
         }
 
         // Return the list of images
@@ -806,6 +710,8 @@ public class FirebaseAccess {
         } else {
             return outList;
         }
+
+
     }
 
 }

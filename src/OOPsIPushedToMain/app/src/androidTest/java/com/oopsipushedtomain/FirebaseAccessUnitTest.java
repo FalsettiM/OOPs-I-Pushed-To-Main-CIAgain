@@ -35,11 +35,11 @@ public class FirebaseAccessUnitTest {
     public void testAddToCollection() {
         HashMap<String, Object> data = new HashMap<>();
 
-        data.put("test1", 1);
-        data.put("test2", "two");
+        data.put("test1", 5);
+        data.put("test2", "seven");
 
 
-        database.storeDataInFirestore("EVNT-0", data);
+        database.storeDataInFirestore("EVNT-1", data);
     }
 
     @Test
@@ -50,7 +50,7 @@ public class FirebaseAccessUnitTest {
         data.put("test2", "two");
 
 
-        database.storeDataInFirestore("EVNT-0", FirebaseInnerCollection.eventPosters, "IMGE-0", data);
+        database.storeDataInFirestore("EVNT-1", FirebaseInnerCollection.eventPosters, "IMGE-1", data);
     }
 
     @Test
@@ -60,7 +60,7 @@ public class FirebaseAccessUnitTest {
         Bitmap image = BitmapFactory.decodeResource(testContext.getResources(), com.oopsipushedtomain.test.R.drawable.test_image);
 
         // Upload to the database
-        imageUID = database.storeImageInFirebaseStorage("EVNT-0", null, ImageType.promoQRCodes, image);
+        imageUID = database.storeImageInFirestore("EVNT-1", null, ImageType.promoQRCodes, image);
     }
 
     @Test
@@ -69,28 +69,28 @@ public class FirebaseAccessUnitTest {
         Map<String, Object> outerData = new HashMap<>();
 
         // Get the data from the outer collection
-        outerData = database.getDataFromFirestore("EVNT-0");
+        outerData = database.getDataFromFirestore("EVNT-1");
 
         // Print the data
         Log.d("FirebaseAccessTest", "Outer Data: " + outerData.toString());
 
         // Get the data from the inner collection
         Map<String, Object> innerData = new HashMap<>();
-        innerData = database.getDataFromFirestore("EVNT-0", FirebaseInnerCollection.eventPosters, "IMGE-0");
+        innerData = database.getDataFromFirestore("EVNT-1", FirebaseInnerCollection.eventPosters, "IMGE-1");
         Log.d("FirebaseAccessTest", "Inner Data: " + innerData.toString());
 
         // Test document not found
-        assertNull(database.getDataFromFirestore("EVNT-0", FirebaseInnerCollection.announcements, "HHHHH"));
+        assertNull(database.getDataFromFirestore("EVNT-1", FirebaseInnerCollection.announcements, "HHHHH"));
 
     }
 
     @Test
     public void testDeleteDocument() {
         // Test deleting an inner collection
-//        database.deleteDataFromFirestore("EVNT-0", FirebaseInnerCollection.eventPosters, "IMGE-0");
+//        database.deleteDataFromFirestore("EVNT-0", FirebaseInnerCollection.eventPosters, "IMGE-1");
 
         // Test deleting a main document
-        database.deleteDataFromFirestore("EVNT-0");
+        database.deleteDataFromFirestore("EVNT-1");
 
         // Test deleting a non existent document
         database.deleteDataFromFirestore("Hi");
@@ -103,7 +103,7 @@ public class FirebaseAccessUnitTest {
 
 
         // Get the image
-        Bitmap image = database.getImageFromFirebaseStorage(imageUID, ImageType.promoQRCodes);
+        Bitmap image = database.getImageFromFirestore(imageUID, ImageType.promoQRCodes);
     }
 
 
@@ -113,7 +113,7 @@ public class FirebaseAccessUnitTest {
         testImageUpload();
 
         // Delete the image
-        database.deleteImageFromFirebaseStorage(imageUID, ImageType.promoQRCodes);
+        database.deleteImageFromFirestore("EVNT-0",imageUID, ImageType.promoQRCodes);
     }
 
     @Test
@@ -122,7 +122,7 @@ public class FirebaseAccessUnitTest {
         testImageUpload();
 
         // Get all the images
-        ArrayList<Map<String, Object>> data = database.getAllRelatedImagesFromFirebaseStorage("EVNT-0", ImageType.promoQRCodes);
+        ArrayList<Map<String, Object>> data = database.getAllRelatedImagesFromFirestore("EVNT-0", ImageType.promoQRCodes);
 
         // Print out the data
         Log.d("Testing", "Data: " + data);
@@ -134,7 +134,7 @@ public class FirebaseAccessUnitTest {
         testImageUpload();
 
         // Get all the images
-        ArrayList<Map<String, Object>> data = database.getAllImagesFromFirebaseStorage(ImageType.promoQRCodes);
+        ArrayList<Map<String, Object>> data = database.getAllImagesFromFirestore(ImageType.promoQRCodes);
 
         // Print out the data
         Log.d("Testing", "Data: " + data);
