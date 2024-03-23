@@ -450,8 +450,15 @@ public class FirebaseAccess {
         assert database != null;
         Map<String, Object> data = database.getDataFromFirestore(imageUID);
 
-        // Get the blob from the data and convert to an bitmap
-        return blobToBitmap((Blob) Objects.requireNonNull(data.get("image")));
+        // Check if the image actually exists
+        if (data != null){
+            // Get the blob from the data and convert to an bitmap
+            return blobToBitmap((Blob) Objects.requireNonNull(data.get("image")));
+        } else {
+            return null;
+        }
+
+
     }
 
 
