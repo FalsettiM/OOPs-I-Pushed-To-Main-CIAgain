@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -19,20 +20,21 @@ import com.oopsipushedtomain.Database.FirebaseInnerCollection;
 import com.oopsipushedtomain.Database.FirestoreAccessType;
 import com.oopsipushedtomain.Database.ImageType;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.function.ThrowingRunnable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class FirebaseAccessUnitTest {
 
     /**
      * A toggle for performing the DeleteAll test
      */
-    boolean performDeleteAll = true;
+    boolean performDeleteAll = false;
 
     /**
      * The object being tested
@@ -187,7 +189,7 @@ public class FirebaseAccessUnitTest {
 
 
     @Test
-    public void testDeleteFromFirestore() {
+    public void testDeleteDataFromFirestore() {
         // Delete the inner document from Firestore
         database.deleteDataFromFirestore(outerUID, innerColl, innerUID);
 
@@ -202,7 +204,7 @@ public class FirebaseAccessUnitTest {
         data = database.getDataFromFirestore(outerUID);
         assertNull(data);
 
-        // Ensure the app does not crash when deleting a non-existent documen
+        // Ensure the app does not crash when deleting a non-existent document
         database.deleteDataFromFirestore("NOEXIST");
     }
 
@@ -222,7 +224,7 @@ public class FirebaseAccessUnitTest {
     }
 
     @Test
-    public void testStoreDatainFirestore() {
+    public void testStoreDataInFirestore() {
         // Store data into an outer collection
         Map<String, String> storeUID = database.storeDataInFirestore(outerUID, outerTestData);
         Map<String, Object> data = database.getDataFromFirestore(outerUID);
@@ -245,6 +247,9 @@ public class FirebaseAccessUnitTest {
         data = database.getDataFromFirestore(storeUID.get("outer"), FirebaseInnerCollection.announcements, storeUID.get("inner"));
         assertEquals(data.get("UID"), storeUID.get("inner"));
 
+        // Delete the new document
+        database.deleteDataFromFirestore(storeUID.get("outer"));
+
         // Test creating a new inner document for an image
         assertThrows(IllegalArgumentException.class, () -> database.storeDataInFirestore(outerUID, FirebaseInnerCollection.eventPosters, null, innerTestData));
 
@@ -257,7 +262,7 @@ public class FirebaseAccessUnitTest {
     }
 
     @Test
-    public void testStoreImageInFirestore(){
+    public void testStoreImageInFirestore() {
         // Store an image in Firestore
         String storeUID = database.storeImageInFirestore(outerUID, imageUID, ImageType.eventPosters, testImage);
 
@@ -302,80 +307,120 @@ public class FirebaseAccessUnitTest {
         assertEquals(storeUID, data.get("UID"));
         assertNotNull(image);
 
+        // Delete the image to clean up
+        database.deleteImageFromFirestore(outerUID, storeUID, ImageType.promoQRCodes);
+
         // Test invalid database
         FirebaseAccess database2 = new FirebaseAccess(FirestoreAccessType.IMAGES);
         assertThrows(IllegalArgumentException.class, () -> database2.storeImageInFirestore(outerUID, imageUID, imageType, testImage));
     }
 
-
-
-
     @Test
-    public void testDeleteAll() {
-        // Delete all of the items in the database to prepare for testing
+    public void testDeleteAllDocumentsFromFirestore() {
         if (performDeleteAll) {
-            database.deleteAllDataInFireStore();
+            // Delete all the documents in Firestore
+            database.deleteAllDataInFirestore();
+
+            // Check if the data was deleted and the collection still exits
+            Map<String, Object> data = database.getDataFromFirestore("XXXX");
+            assertEquals("XXXX", data.get("UID"));
+        } else {
+            Log.d("FirebaseAccessTest", "Skipped Delete All");
         }
     }
 
-
-
-
-
-
     @Test
-    public void testDeleteDocument() {
-        // Test deleting an inner collection
-//        database.deleteDataFromFirestore("EVNT-0", FirebaseInnerCollection.eventPosters, "IMGE-1");
+    public void testGetAllDocumentsFromFirestore() {
+        // Add a document to the collection
+        database.storeDataInFirestore(outerUID, outerTestData);
 
-        // Test deleting a main document
-        database.deleteDataFromFirestore("EVNT-1");
+        // Get the list of all documents in the outer collection
+        ArrayList<Map<String, Object>> dataList = database.getAllDocuments();
+        assertNotNull(dataList);
 
-        // Test deleting a non existent document
-        database.deleteDataFromFirestore("Hi");
+        // Iterate through the list and confirm the added document is in the list
+        boolean addedDocExists = false;
+        for (Map<String, Object> data : dataList) {
+            if (Objects.equals((String) data.get("UID"), outerUID)) {
+                addedDocExists = true;
+            }
+        }
+        assertTrue(addedDocExists);
+
+        // Try to get a document from a non-existent inner collection
+        // Simulates an empty collection
+        dataList = database.getAllDocuments(outerUID, FirebaseInnerCollection.profilePictures);
+        assertNull(dataList);
+
+        // Add a document to this inner collection
+        database.storeDataInFirestore(outerUID, innerColl, innerUID, innerTestData);
+
+        // Get the list of all documents in the inner collection
+        dataList = database.getAllDocuments(outerUID, innerColl);
+        assertNotNull(dataList);
+
+        // Confirm the added document is in the list
+        addedDocExists = false;
+        for (Map<String, Object> data : dataList) {
+            if (Objects.equals((String) data.get("UID"), innerUID)) {
+                addedDocExists = true;
+            }
+        }
+        assertTrue(addedDocExists);
+
     }
 
-
-
-
     @Test
-    public void testDeleteImage() {
-        // Upload an image
-//        testImageUpload();
+    public void testGetAllRelatedImagesFromFirestore() {
+        // Add an image to the collection
+        database.storeImageInFirestore(outerUID, imageUID, imageType, testImage);
 
-        // Delete the image
-        database.deleteImageFromFirestore("EVNT-0", imageUID, ImageType.promoQRCodes);
+        // Get all the images from this collection
+        ArrayList<Map<String, Object>> dataList = database.getAllRelatedImagesFromFirestore(outerUID, imageType);
+        assertNotNull(dataList);
+
+        // Check to see if the added image is in the list
+        boolean addedDocExists = false;
+        for (Map<String, Object> data : dataList) {
+            if (Objects.equals((String) data.get("UID"), imageUID)) {
+                addedDocExists = true;
+            }
+        }
+        assertTrue(addedDocExists);
+
+        // Try to get images from an empty collection
+        dataList = database.getAllRelatedImagesFromFirestore(outerUID, ImageType.profilePictures);
+        assertNull(dataList);
     }
 
     @Test
-    public void testGetAllRelatedImages() {
-        // Upload an image
-//        testImageUpload();
+    public void testGetAllImagesFromFirestore() {
+        // Add an image to the collection
+        database.storeImageInFirestore(outerUID, imageUID, imageType, testImage);
 
-        // Get all the images
-        ArrayList<Map<String, Object>> data = database.getAllRelatedImagesFromFirestore("EVNT-0", ImageType.promoQRCodes);
+        // Get all of the images of this type
+        ArrayList<Map<String, Object>> dataList = database.getAllImagesFromFirestore(imageType);
+        assertNotNull(dataList);
 
-        // Print out the data
-        Log.d("Testing", "Data: " + data);
+        // Check to see if the added image is in the list
+        boolean addedDocExists = false;
+        for (Map<String, Object> data : dataList) {
+            Log.d("FirebaseAccessTest", "UID: " + data.get("UID"));
+            if (Objects.equals((String) data.get("UID"), imageUID)) {
+                addedDocExists = true;
+            }
+        }
+        assertTrue(addedDocExists);
+
     }
 
-    @Test
-    public void testGetAllImages() {
-        // Upload an image
-//        testImageUpload();
-
-        // Get all the images
-        ArrayList<Map<String, Object>> data = database.getAllImagesFromFirestore(ImageType.promoQRCodes);
-
-        // Print out the data
-        Log.d("Testing", "Data: " + data);
+    @After
+    public void cleanUpDatabase() {
+        // Delete all of the new documents and images
+        database.deleteImageFromFirestore(outerUID, imageUID, imageType);
+        database.deleteImageFromFirestore(outerUID, imageUID, ImageType.eventPosters);
+        database.deleteDataFromFirestore(outerUID);
     }
-
-//    @Test
-//    public void testDeleteAll(){
-//        // Delete everything in the database
-//        database.deleteAllDataInFireStore();
-//    }
 
 
 }

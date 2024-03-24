@@ -120,15 +120,14 @@ public class FirebaseAccess {
 
         // Check if the required size is reached
 //        Log.d("Image Compression", "Size: " + bitmapBytes.length);
-        if (bitmapBytes.length <= 1048487){
+        if (bitmapBytes.length <= 1048487) {
             imageCompressed = true;
         }
 
 
-
         // Try to compress to JPEG if image is not small enough
         int quality = 100;
-        while (!imageCompressed){
+        while (!imageCompressed) {
             // Create a new output
             baos = new ByteArrayOutputStream();
 
@@ -138,13 +137,13 @@ public class FirebaseAccess {
 
             // Check if the required size is reached
 //            Log.d("Image Compression", "Size: " + bitmapBytes.length);
-            if (bitmapBytes.length <= 1048487){
+            if (bitmapBytes.length <= 1048487) {
                 imageCompressed = true;
             } else {
-                if (quality == 0){
+                if (quality == 0) {
                     break;
                 }
-                quality = quality/2;
+                quality = quality / 2;
             }
 
         }
@@ -219,8 +218,8 @@ public class FirebaseAccess {
 
         // If the inner document name is not specified, create a new one
         // Essentially a special case for announcements
-        if (innerDocName == null && innerCollName != null){
-            switch (innerCollName){
+        if (innerDocName == null && innerCollName != null) {
+            switch (innerCollName) {
                 case eventPosters:
                 case eventQRCodes:
                 case promoQRCodes:
@@ -266,7 +265,7 @@ public class FirebaseAccess {
         }
 
         // Return the UID of the outer document
-        Map<String, String > outNames = new HashMap<>();
+        Map<String, String> outNames = new HashMap<>();
         outNames.put("outer", outerDocName);
         outNames.put("inner", innerDocName);
         return outNames;
@@ -293,7 +292,7 @@ public class FirebaseAccess {
      * @param imageUID   The UID/name of the image (will create new if null)
      * @param imageType  The type of image you are uploading (only used for events)
      * @param image      The image to upload
-     * @param imageData       Any other data to add to the image
+     * @param imageData  Any other data to add to the image
      * @return The UID of the image or null if there was an error
      */
     public String storeImageInFirestore(String attachedTo, String imageUID, ImageType imageType, Bitmap image, Map<String, Object> imageData) {
@@ -306,7 +305,7 @@ public class FirebaseAccess {
         }
 
         // Check if extra data exists
-        if (imageData == null){
+        if (imageData == null) {
             imageData = new HashMap<>();
         }
 
@@ -326,7 +325,7 @@ public class FirebaseAccess {
         // Convert the image to a Blob
         Blob imageBlob = bitmapToBlob(image);
 
-        if (imageBlob.toBytes().length > 1048487){
+        if (imageBlob.toBytes().length > 1048487) {
             // Image is too large
             throw new IllegalArgumentException("Image is too large: " + imageBlob.toBytes().length + " bytes.");
         }
@@ -474,9 +473,9 @@ public class FirebaseAccess {
         Map<String, Object> data = database.getDataFromFirestore(imageUID);
 
         // Check if the image actually exists
-        if (data != null){
+        if (data != null) {
             // Get the blob from the data and convert to an bitmap
-            Bitmap image =  blobToBitmap((Blob) Objects.requireNonNull(data.get("image")));
+            Bitmap image = blobToBitmap((Blob) Objects.requireNonNull(data.get("image")));
 
             // Add the bitmap to the returned data
             data.put("image", image);
@@ -546,14 +545,13 @@ public class FirebaseAccess {
 
             // Delete the outer collection
             deleteDocumentFromFirestore(docRef);
-        } else{  // This is an inner collection
+        } else {  // This is an inner collection
             // Get a reference to the inner document
             DocumentReference innerDocRef = docRef.collection(innerCollName.name()).document(innerDocName);
 
             // Delete the document
             this.deleteDocumentFromFirestore(innerDocRef);
         }
-
 
 
     }
@@ -650,7 +648,7 @@ public class FirebaseAccess {
                 docData = document.getData();
 
                 // Check if the document is the init document
-                if (document.getId().equals("XXXX")){
+                if (document.getId().equals("XXXX")) {
                     continue;
                 }
 
@@ -725,18 +723,20 @@ public class FirebaseAccess {
 
         // Get the images from Firebase Storage
         ArrayList<Map<String, Object>> outList = new ArrayList<>();
-        for (Map<String, Object> filePointer : data) {
-            // Create the map
-            HashMap<String, Object> outData = new HashMap<>();
+        if (data != null) {
+            for (Map<String, Object> filePointer : data) {
+                // Create the map
+                HashMap<String, Object> outData = new HashMap<>();
 
-            // Get the UID
-            outData.put("UID", filePointer.get("UID"));
+                // Get the UID
+                outData.put("UID", filePointer.get("UID"));
 
-            // Get the image
-            outData.put("image", this.getImageFromFirestore((String) filePointer.get("UID"), imageType));
+                // Get the image
+                outData.put("image", this.getImageFromFirestore((String) filePointer.get("UID"), imageType));
 
-            // Put the map in the list
-            outList.add(outData);
+                // Put the map in the list
+                outList.add(outData);
+            }
         }
 
         // Return the list of images
@@ -769,14 +769,16 @@ public class FirebaseAccess {
 
         // Go through the documents and add the ones that match the given type to the output list
         ArrayList<Map<String, Object>> outList = new ArrayList<>();
-        for (Map<String, Object> potentialImage : data) {
-            // Check if the image matches the type
-            if (potentialImage.get("type") == imageType.name()) {
-                // Convert the image to a bitmap and attach it to the data
-                potentialImage.put("image", blobToBitmap((Blob) Objects.requireNonNull(potentialImage.get("image"))));
+        if (data != null) {
+            for (Map<String, Object> potentialImage : data) {
+                // Check if the image matches the type
+                if (Objects.equals((String) potentialImage.get("type"), imageType.name())) {
+                    // Convert the image to a bitmap and attach it to the data
+                    potentialImage.put("image", blobToBitmap((Blob) Objects.requireNonNull(potentialImage.get("image"))));
 
-                // Add the image to the output
-                outList.add(potentialImage);
+                    // Add the image to the output
+                    outList.add(potentialImage);
+                }
             }
         }
 
@@ -787,30 +789,32 @@ public class FirebaseAccess {
             return outList;
         }
 
-
     }
 
     /**
      * This function is callable from any access
      * DELETES ALL DOCUMENTS ACROSS ALL COLLECTIONS
      */
-    public void deleteAllDataInFireStore(){
+    public void deleteAllDataInFirestore() {
         // Create an array list of all collections
         ArrayList<FirebaseAccess> databases = new ArrayList<>();
 
         // Add collections to the list
-        for (FirestoreAccessType access : FirestoreAccessType.values()){
+        for (FirestoreAccessType access : FirestoreAccessType.values()) {
             databases.add(new FirebaseAccess(access));
         }
 
         // For each collection
-        for (FirebaseAccess database : databases){
+        for (FirebaseAccess database : databases) {
             // Find all documents
             ArrayList<Map<String, Object>> data = database.getAllDocuments();
 
-            // Delete each document
-            for (Map<String, Object> document : data){
-                database.deleteDataFromFirestore((String) document.get("UID"));
+            // Check if the document exists
+            if (data != null) {
+                // Delete each document
+                for (Map<String, Object> document : data) {
+                    database.deleteDataFromFirestore((String) document.get("UID"));
+                }
             }
 
             // Re-initialize the collections
@@ -819,9 +823,6 @@ public class FirebaseAccess {
 
 
         }
-
-
-
 
 
     }
