@@ -171,10 +171,12 @@ public class FirebaseAccessUnitTest {
     @Test
     public void testGetImageFromFirestore() {
         // Get the preloaded image from firestore
-        Bitmap image = database.getImageFromFirestore(imageUID, imageType);
+        Map<String, Object> image = database.getImageFromFirestore(imageUID, imageType);
 
         // Due to the compression algorithm, it is not possible to compare the images
         assertNotNull(image);
+        assertEquals(imageData.get("origin"), image.get("origin"));
+        assertEquals(imageData.get("type"), image.get("type"));
 
         // Get an image that does not exist
         image = database.getImageFromFirestore("NOEXIST", imageType);
@@ -202,6 +204,21 @@ public class FirebaseAccessUnitTest {
 
         // Ensure the app does not crash when deleting a non-existent documen
         database.deleteDataFromFirestore("NOEXIST");
+    }
+
+
+    @Test
+    public void testDeleteImageFromFirestore() {
+        // Delete the test image from Firestore
+        database.deleteImageFromFirestore(outerUID, imageUID, imageType);
+
+        // Attempt to retrieve the image and its link
+        Map<String, Object> imageData = database.getImageFromFirestore(imageUID, imageType);
+        Map<String, Object> linkData = database.getDataFromFirestore(outerUID, innerImagesColl, imageUID);
+
+        // The result should be null
+        assertNull(imageData);
+        assertNull(linkData);
     }
 
     @Test
@@ -236,14 +253,61 @@ public class FirebaseAccessUnitTest {
 
         // Test not specifying inner collection
         assertThrows(IllegalArgumentException.class, () -> database.storeDataInFirestore(outerUID, null, innerUID, innerTestData));
-        
-    }
 
+    }
 
     @Test
-    public void testStoreData() {
-        // Test storing some data in the database
+    public void testStoreImageInFirestore(){
+        // Store an image in Firestore
+        String storeUID = database.storeImageInFirestore(outerUID, imageUID, ImageType.eventPosters, testImage);
+
+        // Retrieve the image
+        Map<String, Object> image = database.getImageFromFirestore(imageUID, ImageType.eventPosters);
+
+        // Get the data from the linked collection
+        Map<String, Object> data = database.getDataFromFirestore(outerUID, FirebaseInnerCollection.eventPosters, storeUID);
+
+        // Test
+        assertEquals(storeUID, imageUID);           // Image creation
+        assertEquals(data.get("UID"), imageUID);    // Link
+        assertNotNull(image);                       // Actual image
+
+
+        // Store an image with data in firestore
+        storeUID = database.storeImageInFirestore(outerUID, imageUID, ImageType.eventQRCodes, testImage, innerTestData);
+
+        // Retrieve the image
+        image = database.getImageFromFirestore(imageUID, ImageType.eventQRCodes);
+
+        // Get the data from the linked collection
+        data = database.getDataFromFirestore(outerUID, FirebaseInnerCollection.eventQRCodes, storeUID);
+
+
+        // Test
+        assertEquals(storeUID, imageUID);           // Image creation
+        assertEquals(data.get("UID"), imageUID);    // Link
+        assertNotNull(image);                       // Actual image
+        assertEquals(innerTestData.get("Inner1"), image.get("Inner1"));
+
+        // Store an image with no UID given
+        storeUID = database.storeImageInFirestore(outerUID, null, ImageType.promoQRCodes, testImage);
+
+        // Retrieve the image
+        image = database.getImageFromFirestore(storeUID, ImageType.promoQRCodes);
+
+        // Get the data from the linked collection
+        data = database.getDataFromFirestore(outerUID, FirebaseInnerCollection.promoQRCodes, storeUID);
+
+        // Test
+        assertEquals(storeUID, data.get("UID"));
+        assertNotNull(image);
+
+        // Test invalid database
+        FirebaseAccess database2 = new FirebaseAccess(FirestoreAccessType.IMAGES);
+        assertThrows(IllegalArgumentException.class, () -> database2.storeImageInFirestore(outerUID, imageUID, imageType, testImage));
     }
+
+
 
 
     @Test
@@ -254,58 +318,10 @@ public class FirebaseAccessUnitTest {
         }
     }
 
-    @Test
-    public void testAddToCollection() {
-        HashMap<String, Object> data = new HashMap<>();
-
-        data.put("test1", 5);
-        data.put("test2", "seven");
 
 
-        database.storeDataInFirestore("EVNT-1", data);
-    }
-
-    @Test
-    public void testAddToInnerCollection() {
-        HashMap<String, Object> data = new HashMap<>();
-
-        data.put("test1", 1);
-        data.put("test2", "two");
 
 
-        database.storeDataInFirestore("EVNT-1", FirebaseInnerCollection.eventPosters, "IMGE-1", data);
-    }
-
-    @Test
-    public void testImageUpload() {
-        // Create the bitmap
-        Context testContext = InstrumentationRegistry.getInstrumentation().getContext();
-        Bitmap image = BitmapFactory.decodeResource(testContext.getResources(), com.oopsipushedtomain.test.R.drawable.test_image);
-
-        // Upload to the database
-        imageUID = database.storeImageInFirestore("EVNT-1", null, ImageType.promoQRCodes, image);
-    }
-
-    @Test
-    public void testGetFromCollection() {
-        // Create data storage
-        Map<String, Object> outerData = new HashMap<>();
-
-        // Get the data from the outer collection
-        outerData = database.getDataFromFirestore("EVNT-1");
-
-        // Print the data
-        Log.d("FirebaseAccessTest", "Outer Data: " + outerData.toString());
-
-        // Get the data from the inner collection
-        Map<String, Object> innerData = new HashMap<>();
-        innerData = database.getDataFromFirestore("EVNT-1", FirebaseInnerCollection.eventPosters, "IMGE-1");
-        Log.d("FirebaseAccessTest", "Inner Data: " + innerData.toString());
-
-        // Test document not found
-        assertNull(database.getDataFromFirestore("EVNT-1", FirebaseInnerCollection.announcements, "HHHHH"));
-
-    }
 
     @Test
     public void testDeleteDocument() {
@@ -319,21 +335,13 @@ public class FirebaseAccessUnitTest {
         database.deleteDataFromFirestore("Hi");
     }
 
-    @Test
-    public void testGetImage() {
-        // Upload an image
-        testImageUpload();
 
-
-        // Get the image
-        Bitmap image = database.getImageFromFirestore(imageUID, ImageType.promoQRCodes);
-    }
 
 
     @Test
     public void testDeleteImage() {
         // Upload an image
-        testImageUpload();
+//        testImageUpload();
 
         // Delete the image
         database.deleteImageFromFirestore("EVNT-0", imageUID, ImageType.promoQRCodes);
@@ -342,7 +350,7 @@ public class FirebaseAccessUnitTest {
     @Test
     public void testGetAllRelatedImages() {
         // Upload an image
-        testImageUpload();
+//        testImageUpload();
 
         // Get all the images
         ArrayList<Map<String, Object>> data = database.getAllRelatedImagesFromFirestore("EVNT-0", ImageType.promoQRCodes);
@@ -354,7 +362,7 @@ public class FirebaseAccessUnitTest {
     @Test
     public void testGetAllImages() {
         // Upload an image
-        testImageUpload();
+//        testImageUpload();
 
         // Get all the images
         ArrayList<Map<String, Object>> data = database.getAllImagesFromFirestore(ImageType.promoQRCodes);

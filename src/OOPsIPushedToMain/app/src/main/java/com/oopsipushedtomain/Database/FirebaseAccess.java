@@ -279,7 +279,7 @@ public class FirebaseAccess {
      * @param imageUID   The UID/name of the image (will create new if null)
      * @param imageType  The type of image you are uploading (only used for events)
      * @param image      The image to upload
-     * @return The UID of the image or null if there was an error
+     * @return The UID of the image or null if there was an error n
      */
     public String storeImageInFirestore(String attachedTo, String imageUID, ImageType imageType, Bitmap image) {
         return storeImageInFirestore(attachedTo, imageUID, imageType, image, null);
@@ -458,7 +458,7 @@ public class FirebaseAccess {
      * @param imageType The type of the image
      * @return The image as a bitmap
      */
-    public Bitmap getImageFromFirestore(String imageUID, ImageType imageType) {
+    public Map<String, Object> getImageFromFirestore(String imageUID, ImageType imageType) {
         Blob imageBlob = null;
 
         // Find the correct image collection
@@ -476,7 +476,16 @@ public class FirebaseAccess {
         // Check if the image actually exists
         if (data != null){
             // Get the blob from the data and convert to an bitmap
-            return blobToBitmap((Blob) Objects.requireNonNull(data.get("image")));
+            Bitmap image =  blobToBitmap((Blob) Objects.requireNonNull(data.get("image")));
+
+            // Add the bitmap to the returned data
+            data.put("image", image);
+
+            // Add the UID to the data
+            data.put("UID", imageUID);
+
+            // Return the data
+            return data;
         } else {
             return null;
         }
