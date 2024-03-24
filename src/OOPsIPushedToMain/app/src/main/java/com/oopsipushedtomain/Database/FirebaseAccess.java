@@ -180,7 +180,7 @@ public class FirebaseAccess {
      * @param data    The data to write to the document
      * @return The UID of the document, or null if there was an error
      */
-    public String storeDataInFirestore(String docName, Map<String, Object> data) {
+    public Map<String, String> storeDataInFirestore(String docName, Map<String, Object> data) {
         return this.storeDataInFirestore(docName, null, null, data);
     }
 
@@ -193,9 +193,9 @@ public class FirebaseAccess {
      * @param innerCollName The name of the inner collection, if null, store in outer document
      * @param innerDocName  The UID of the inner document (Ex. eventPosters), if null, store in outer document
      * @param data          The data to write to the inner document
-     * @return The UID of the outer document, or null if there was an error
+     * @return The UID of the outer document, the UID of the inner document
      */
-    public String storeDataInFirestore(String outerDocName, FirebaseInnerCollection innerCollName, String innerDocName, Map<String, Object> data) {
+    public Map<String, String> storeDataInFirestore(String outerDocName, FirebaseInnerCollection innerCollName, String innerDocName, Map<String, Object> data) {
         // If the outerDocName is not given, make a new one
         if (outerDocName == null) {
             switch (databaseType) {
@@ -215,6 +215,26 @@ public class FirebaseAccess {
                     Log.e("StoreinFirestore", "Use storeImageInFirebaseStorage() to store an image");
                     return null;
             }
+        }
+
+        // If the inner document name is not specified, create a new one
+        // Essentially a special case for announcements
+        if (innerDocName == null && innerCollName != null){
+            switch (innerCollName){
+                case eventPosters:
+                case eventQRCodes:
+                case promoQRCodes:
+                case profilePictures:
+                    throw new IllegalArgumentException("Use storeImageInFirestore instead for " + innerCollName.name());
+                case announcements:
+                    innerDocName = "ANMT-" + collRef.document().getId().toUpperCase();
+                    break;
+                case checkedInEvents:
+                case signedUpEvents:
+                    throw new IllegalArgumentException("Create an event first!!");
+            }
+        } else if (innerCollName == null && innerDocName != null) {
+            throw new IllegalArgumentException("Inner collection must be specified!");
         }
 
         // Set the document reference
@@ -246,7 +266,10 @@ public class FirebaseAccess {
         }
 
         // Return the UID of the outer document
-        return outerDocName;
+        Map<String, String > outNames = new HashMap<>();
+        outNames.put("outer", outerDocName);
+        outNames.put("inner", innerDocName);
+        return outNames;
     }
 
     /**
@@ -511,10 +534,18 @@ public class FirebaseAccess {
                     }
                 }
             }
+
+            // Delete the outer collection
+            deleteDocumentFromFirestore(docRef);
+        } else{  // This is an inner collection
+            // Get a reference to the inner document
+            DocumentReference innerDocRef = docRef.collection(innerCollName.name()).document(innerDocName);
+
+            // Delete the document
+            this.deleteDocumentFromFirestore(innerDocRef);
         }
 
-        // Delete the outer collection
-        deleteDocumentFromFirestore(docRef);
+
 
     }
 

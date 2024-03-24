@@ -3,6 +3,7 @@ package com.oopsipushedtomain;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -20,6 +21,7 @@ import com.oopsipushedtomain.Database.ImageType;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.function.ThrowingRunnable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -139,12 +141,11 @@ public class FirebaseAccessUnitTest {
         innerTestData.put("UID", innerUID);
 
 
-
     }
 
 
     @Test
-    public void testGetDataFromFirestore(){
+    public void testGetDataFromFirestore() {
         // Get the outer collection data from Firestore
         Map<String, Object> data = database.getDataFromFirestore(outerUID);
         assertEquals(data.toString(), outerTestData.toString());
@@ -168,7 +169,7 @@ public class FirebaseAccessUnitTest {
 
 
     @Test
-    public void testGetImageFromFirestore(){
+    public void testGetImageFromFirestore() {
         // Get the preloaded image from firestore
         Bitmap image = database.getImageFromFirestore(imageUID, imageType);
 
@@ -184,7 +185,7 @@ public class FirebaseAccessUnitTest {
 
 
     @Test
-    public void testDeleteFromFirestore(){
+    public void testDeleteFromFirestore() {
         // Delete the inner document from Firestore
         database.deleteDataFromFirestore(outerUID, innerColl, innerUID);
 
@@ -198,31 +199,57 @@ public class FirebaseAccessUnitTest {
         // Check if it was deleted
         data = database.getDataFromFirestore(outerUID);
         assertNull(data);
+
+        // Ensure the app does not crash when deleting a non-existent documen
+        database.deleteDataFromFirestore("NOEXIST");
     }
 
     @Test
-    public void testStoreDatainFirestore(){
-        // Load data into an outer collection
-        database.storeDataInFirestore(outerUID, outerTestData);
-
-        // Load the data from Firestore and check
+    public void testStoreDatainFirestore() {
+        // Store data into an outer collection
+        Map<String, String> storeUID = database.storeDataInFirestore(outerUID, outerTestData);
         Map<String, Object> data = database.getDataFromFirestore(outerUID);
         assertEquals(data.toString(), outerTestData.toString());
+        assertEquals(outerUID, storeUID.get("outer"));
+
+        // Store data into an inner collection
+        storeUID = database.storeDataInFirestore(outerUID, innerColl, innerUID, innerTestData);
+        data = database.getDataFromFirestore(outerUID, innerColl, innerUID);
+        assertEquals(data.toString(), innerTestData.toString());
+        assertEquals(innerUID, storeUID.get("inner"));
+
+        // Test creating a new outer document
+        storeUID = database.storeDataInFirestore(null, outerTestData);
+        data = database.getDataFromFirestore(storeUID.get("outer"));
+        assertEquals(data.get("UID"), storeUID.get("outer"));
+
+        // Test creating a new inner document (announcements)
+        storeUID = database.storeDataInFirestore(storeUID.get("outer"), FirebaseInnerCollection.announcements, null, innerTestData);
+        data = database.getDataFromFirestore(storeUID.get("outer"), FirebaseInnerCollection.announcements, storeUID.get("inner"));
+        assertEquals(data.get("UID"), storeUID.get("inner"));
+
+        // Test creating a new inner document for an image
+        assertThrows(IllegalArgumentException.class, () -> database.storeDataInFirestore(outerUID, FirebaseInnerCollection.eventPosters, null, innerTestData));
+
+        // Test creating a new event to check in to
+        assertThrows(IllegalArgumentException.class, () -> database.storeDataInFirestore(outerUID, FirebaseInnerCollection.checkedInEvents, null, innerTestData));
+
+        // Test not specifying inner collection
+        assertThrows(IllegalArgumentException.class, () -> database.storeDataInFirestore(outerUID, null, innerUID, innerTestData));
+        
     }
 
 
-
     @Test
-    public void testStoreData(){
+    public void testStoreData() {
         // Test storing some data in the database
     }
 
 
-
     @Test
-    public void testDeleteAll(){
+    public void testDeleteAll() {
         // Delete all of the items in the database to prepare for testing
-        if (performDeleteAll){
+        if (performDeleteAll) {
             database.deleteAllDataInFireStore();
         }
     }
@@ -293,7 +320,7 @@ public class FirebaseAccessUnitTest {
     }
 
     @Test
-    public void testGetImage(){
+    public void testGetImage() {
         // Upload an image
         testImageUpload();
 
@@ -304,16 +331,16 @@ public class FirebaseAccessUnitTest {
 
 
     @Test
-    public void testDeleteImage(){
+    public void testDeleteImage() {
         // Upload an image
         testImageUpload();
 
         // Delete the image
-        database.deleteImageFromFirestore("EVNT-0",imageUID, ImageType.promoQRCodes);
+        database.deleteImageFromFirestore("EVNT-0", imageUID, ImageType.promoQRCodes);
     }
 
     @Test
-    public void testGetAllRelatedImages(){
+    public void testGetAllRelatedImages() {
         // Upload an image
         testImageUpload();
 
