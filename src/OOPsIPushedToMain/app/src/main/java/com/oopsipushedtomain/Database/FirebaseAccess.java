@@ -27,6 +27,9 @@ import java.util.concurrent.ExecutionException;
  *
  * @author Matteo Falsetti
  * @version 1.0
+ * @see FirebaseInnerCollection
+ * @see FirestoreAccessType
+ * @see ImageType
  */
 public class FirebaseAccess {
 
@@ -177,7 +180,7 @@ public class FirebaseAccess {
      *
      * @param docName The UID of the document to write to
      * @param data    The data to write to the document
-     * @return The UID of the document, or null if there was an error
+     * @return A map containing the UID of the outer document Map.get("outer")
      */
     public Map<String, String> storeDataInFirestore(String docName, Map<String, Object> data) {
         return this.storeDataInFirestore(docName, null, null, data);
@@ -192,7 +195,7 @@ public class FirebaseAccess {
      * @param innerCollName The name of the inner collection, if null, store in outer document
      * @param innerDocName  The UID of the inner document (Ex. eventPosters), if null, store in outer document
      * @param data          The data to write to the inner document
-     * @return The UID of the outer document, the UID of the inner document
+     * @return A map containing the UID of the outer document Map.get("outer") and the UID of the inner document Map.get("inner")
      */
     public Map<String, String> storeDataInFirestore(String outerDocName, FirebaseInnerCollection innerCollName, String innerDocName, Map<String, Object> data) {
         // If the outerDocName is not given, make a new one
@@ -278,7 +281,7 @@ public class FirebaseAccess {
      * @param imageUID   The UID/name of the image (will create new if null)
      * @param imageType  The type of image you are uploading (only used for events)
      * @param image      The image to upload
-     * @return The UID of the image or null if there was an error n
+     * @return The UID of the image or null if there was an error
      */
     public String storeImageInFirestore(String attachedTo, String imageUID, ImageType imageType, Bitmap image) {
         return storeImageInFirestore(attachedTo, imageUID, imageType, image, null);
@@ -455,7 +458,7 @@ public class FirebaseAccess {
      *
      * @param imageUID  The UID of the image
      * @param imageType The type of the image
-     * @return The image as a bitmap
+     * @return A map containing the image and it's data
      */
     public Map<String, Object> getImageFromFirestore(String imageUID, ImageType imageType) {
         Blob imageBlob = null;
