@@ -2,6 +2,7 @@ package com.oopsipushedtomain.Database;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.telecom.Call;
 import android.util.Log;
 
 import com.google.android.gms.tasks.Task;
@@ -18,8 +19,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * Class for all Firebase accesses
@@ -47,6 +52,9 @@ public class FirebaseAccess {
      * The type of the database access (Ex. Events)
      */
     private FirestoreAccessType databaseType;
+
+    private ExecutorService executorService = Executors.newFixedThreadPool(4);
+
 
     /**
      * Creates a new FirebaseAccess object
@@ -80,7 +88,6 @@ public class FirebaseAccess {
         }
     }
 
-    // Chat GPT: Is there a way to wait until data is confirmed stored in Firebase database using a future
 
     /**
      * Attach a CompletableFuture to a Firebase read/write
@@ -99,8 +106,7 @@ public class FirebaseAccess {
         return future;
     }
 
-    // ChatGPT: What is the best way to convert a bitmap into a string
-    // ChatGPT: Is there a more compressed encoding? Can Firestore store a byte array?
+    // ChatGPT: Can I turn a callable into a completable future
 
     /**
      * Converts a bitmap image to a Blob
@@ -156,6 +162,9 @@ public class FirebaseAccess {
         return Blob.fromBytes(bitmapBytes);
     }
 
+    // ChatGPT: What is the best way to convert a bitmap into a string
+    // ChatGPT: Is there a more compressed encoding? Can Firestore store a byte array?
+
     /**
      * Converts a Blob to a bitmap image
      *
@@ -168,6 +177,32 @@ public class FirebaseAccess {
 
         // Convert the byte array back to a bitmap
         return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+    }
+
+
+    // Chat GPT: Is there a way to wait until data is confirmed stored in Firebase database using a future
+
+    /**
+     * Converts a callable into a completable future
+     *
+     * @param callable The callable to convert
+     * @param <T>      The return type of the callable
+     * @return The completable future
+     */
+    public <T> CompletableFuture<T> callableToCompletableFuture(Callable<T> callable) {
+        CompletableFuture<T> future = new CompletableFuture<>();
+
+        // Submit the Callable to the executor and complete the future when the Callable task finishes
+        executorService.submit(() -> {
+            try {
+                T result = callable.call();
+                future.complete(result);
+            } catch (Exception e) {
+                future.completeExceptionally(e);
+            }
+        });
+
+        return future;
     }
 
 
@@ -198,6 +233,7 @@ public class FirebaseAccess {
      * @return A map containing the UID of the outer document Map.get("outer") and the UID of the inner document Map.get("inner")
      */
     public Map<String, String> storeDataInFirestore(String outerDocName, FirebaseInnerCollection innerCollName, String innerDocName, Map<String, Object> data) {
+
         // If the outerDocName is not given, make a new one
         if (outerDocName == null) {
             switch (databaseType) {
@@ -239,35 +275,28 @@ public class FirebaseAccess {
             throw new IllegalArgumentException("Inner collection must be specified!");
         }
 
-        // Set the document reference
-        docRef = collRef.document(outerDocName);
 
-        // Store the data
-        Task<Void> task = null;
-        if (innerCollName != null && innerDocName != null) {
-            task = docRef.collection(innerCollName.name()).document(innerDocName).set(data);
-        } else {
-            task = docRef.set(data);
-        }
+        String finalOuterDocName = outerDocName;
+        String finalInnerDocName = innerDocName;
+        // Create the callable for storing the data
+        Callable<Void> firestoreTask = () -> {
+            docRef = collRef.document(finalOuterDocName);
 
-        // Create a completable future for waiting until the transfer is complete
-        CompletableFuture<Void> future = toCompletableFuture(task);
+            // Store the data
+            Task<Void> task = null;
+            if (innerCollName != null && finalInnerDocName != null) {
+                docRef.collection(innerCollName.name()).document(finalInnerDocName).set(data);
+            } else {
+                docRef.set(data);
+            }
 
-        // Catch any errors
-        try {
-            // Block until data is written
-            future.get();
-            Log.d("StoreinFirestore", "Document has been saved successfully");
-        } catch (InterruptedException e) {
-            // Handle the interrupted exception
-            Thread.currentThread().interrupt();
-            Log.e("StoreinFirestore", "Task was interrupted: " + e.getMessage());
-        } catch (ExecutionException e) {
-            // Handle any other exception
-            Log.e("StoreinFirestore", "Error writing document: " + Objects.requireNonNull(e.getCause()).getMessage());
-        }
+            return null;
+        };
 
-        // Return the UID of the outer document
+        // Execute the store, no need to return the future (probably)
+        executorService.submit(firestoreTask);
+
+        // Return the UID of the documents
         Map<String, String> outNames = new HashMap<>();
         outNames.put("outer", outerDocName);
         outNames.put("inner", innerDocName);
@@ -341,38 +370,46 @@ public class FirebaseAccess {
         imageData.put("origin", attachedTo);
         imageData.put("type", imageType.name());
 
-        // The access to the correct image database
-        FirebaseAccess imageAccess = null;
+        // Create the callable
+        String finalImageUID = imageUID;
+        Map<String, Object> finalImageData = imageData;
+        Callable<Void> firestoreTask = () -> {
+            // The access to the correct image database
+            FirebaseAccess imageAccess = null;
 
+            // Get the correct database to store the image and store the origin in the correct inner collection
+            switch (this.databaseType) {
+                case EVENTS:
+                    switch (imageType) {
+                        case eventPosters:
+                            imageAccess = new FirebaseAccess(FirestoreAccessType.IMAGES);
+                            this.storeDataInFirestore(attachedTo, FirebaseInnerCollection.eventPosters, finalImageUID, originData);
+                            break;
+                        case eventQRCodes:
+                            this.storeDataInFirestore(attachedTo, FirebaseInnerCollection.eventQRCodes, finalImageUID, originData);
+                            imageAccess = new FirebaseAccess(FirestoreAccessType.QRCODES);
+                            break;
+                        case promoQRCodes:
+                            this.storeDataInFirestore(attachedTo, FirebaseInnerCollection.promoQRCodes, finalImageUID, originData);
+                            imageAccess = new FirebaseAccess(FirestoreAccessType.QRCODES);
+                            break;
+                    }
+                    break;
+                case USERS:
+                    this.storeDataInFirestore(attachedTo, FirebaseInnerCollection.profilePictures, finalImageUID, originData);
+                    imageAccess = new FirebaseAccess(FirestoreAccessType.IMAGES);
+                    break;
+            }
 
-        // Get the correct database to store the image and store the origin in the correct inner collection
-        switch (this.databaseType) {
-            case EVENTS:
-                switch (imageType) {
-                    case eventPosters:
-                        imageAccess = new FirebaseAccess(FirestoreAccessType.IMAGES);
-                        this.storeDataInFirestore(attachedTo, FirebaseInnerCollection.eventPosters, imageUID, originData);
-                        break;
-                    case eventQRCodes:
-                        this.storeDataInFirestore(attachedTo, FirebaseInnerCollection.eventQRCodes, imageUID, originData);
-                        imageAccess = new FirebaseAccess(FirestoreAccessType.QRCODES);
-                        break;
-                    case promoQRCodes:
-                        this.storeDataInFirestore(attachedTo, FirebaseInnerCollection.promoQRCodes, imageUID, originData);
-                        imageAccess = new FirebaseAccess(FirestoreAccessType.QRCODES);
-                        break;
-                }
-                break;
-            case USERS:
-                this.storeDataInFirestore(attachedTo, FirebaseInnerCollection.profilePictures, imageUID, originData);
-                imageAccess = new FirebaseAccess(FirestoreAccessType.IMAGES);
-                break;
-        }
+            // Store the image in the database
+            assert imageAccess != null;
+            imageAccess.storeDataInFirestore(finalImageUID, finalImageData);
 
+            return null;
+        };
 
-        // Store the image in the database
-        assert imageAccess != null;
-        imageAccess.storeDataInFirestore(imageUID, imageData);
+        // Execute the task, no need to return the future (probably)
+        executorService.submit(firestoreTask);
 
         // Return the imageUID
         return imageUID;
@@ -387,7 +424,7 @@ public class FirebaseAccess {
      * @param docName The UID of the document in the outer collection.
      * @return The data in the document, or null if the document was not found
      */
-    public Map<String, Object> getDataFromFirestore(String docName) {
+    public CompletableFuture<Map<String, Object>> getDataFromFirestore(String docName) {
         return this.getDataFromFirestore(docName, null, null);
     }
 
@@ -403,54 +440,60 @@ public class FirebaseAccess {
      * @param innerDocName  The UID of the document in the inner collection. If this is null, will return data from the outer collection
      * @return The data in the document, or null if the document was not found
      */
-    public Map<String, Object> getDataFromFirestore(String outerDocName, FirebaseInnerCollection innerCollName, String innerDocName) {
+    public CompletableFuture<Map<String, Object>> getDataFromFirestore(String outerDocName, FirebaseInnerCollection innerCollName, String innerDocName) {
         // Get the document reference for the outer/main collection
         docRef = collRef.document(outerDocName);
 
-        // Get the document from firebase
-        Task<DocumentSnapshot> task = null;
-        if (innerCollName != null && innerDocName != null) {
-            task = docRef.collection(innerCollName.name()).document(innerDocName).get();
-        } else {
-            task = docRef.get();
-        }
+        // Create the callable to get the data
+        Callable<Map<String, Object>> firestoreTask = () -> {
+            // Get the document from firebase
+            Task<DocumentSnapshot> task = null;
+            if (innerCollName != null && innerDocName != null) {
+                task = docRef.collection(innerCollName.name()).document(innerDocName).get();
+            } else {
+                task = docRef.get();
+            }
 
-        // Convert the task to a CompletableFuture
-        CompletableFuture<DocumentSnapshot> future = toCompletableFuture(task);
+            // Convert the task to a CompletableFuture
+            CompletableFuture<DocumentSnapshot> future = toCompletableFuture(task);
 
-        // Get the output
-        DocumentSnapshot document = null;
-        try {
-            // Block until data is retrieved
-            document = future.get();
-            Log.d("GetFromFirestore", "Data has been received");
-        } catch (InterruptedException e) {
-            // Handle the interrupted exception
-            Thread.currentThread().interrupt();
-            Log.e("GetFromFirestore", "Task was interrupted: " + e.getMessage());
-            return null;
-        } catch (ExecutionException e) {
-            // Handle any other exception
-            Log.e("GetFromFirestore", "Error retrieving document: " + Objects.requireNonNull(e.getCause()).getMessage());
-            return null;
-        }
+            // Get the output
+            DocumentSnapshot document = null;
+            try {
+                // Block until data is retrieved
+                document = future.get();
+                Log.d("GetFromFirestore", "Data has been received");
+            } catch (InterruptedException e) {
+                // Handle the interrupted exception
+                Thread.currentThread().interrupt();
+                Log.e("GetFromFirestore", "Task was interrupted: " + e.getMessage());
+                return null;
+            } catch (ExecutionException e) {
+                // Handle any other exception
+                Log.e("GetFromFirestore", "Error retrieving document: " + Objects.requireNonNull(e.getCause()).getMessage());
+                return null;
+            }
 
-        // Data was retrieved successfully
-        Map<String, Object> data = null;
-        if (document != null && document.exists()) {
-            // Get the data from the query - assume only one document with this ID
-            data = document.getData();
+            // Data was retrieved successfully
+            Map<String, Object> data = null;
+            if (document != null && document.exists()) {
+                // Get the data from the query - assume only one document with this ID
+                data = document.getData();
 
-            // Attach the document id to the data
-            assert data != null;
-            data.put("UID", document.getId());
+                // Attach the document id to the data
+                assert data != null;
+                data.put("UID", document.getId());
 
-        } else {
-            Log.e("GetFromFirestore", "The document does not exist");
-        }
+            } else {
+                Log.e("GetFromFirestore", "The document does not exist");
+            }
 
-        // Return the received data
-        return data;
+            return data;
+        };
+
+
+        // Return the future
+        return callableToCompletableFuture(firestoreTask);
     }
 
     /**
@@ -460,38 +503,61 @@ public class FirebaseAccess {
      * @param imageType The type of the image
      * @return A map containing the image and it's data
      */
-    public Map<String, Object> getImageFromFirestore(String imageUID, ImageType imageType) {
+    public CompletableFuture<Map<String, Object>> getImageFromFirestore(String imageUID, ImageType imageType) {
         Blob imageBlob = null;
 
         // Find the correct image collection
-        FirebaseAccess database = null;
+        FirebaseAccess database;
         if (imageType == ImageType.eventPosters || imageType == ImageType.profilePictures) {
             database = new FirebaseAccess(FirestoreAccessType.IMAGES);
         } else if (imageType == ImageType.eventQRCodes || imageType == ImageType.promoQRCodes) {
             database = new FirebaseAccess(FirestoreAccessType.QRCODES);
-        }
-
-        // Get the image
-        assert database != null;
-        Map<String, Object> data = database.getDataFromFirestore(imageUID);
-
-        // Check if the image actually exists
-        if (data != null) {
-            // Get the blob from the data and convert to an bitmap
-            Bitmap image = blobToBitmap((Blob) Objects.requireNonNull(data.get("image")));
-
-            // Add the bitmap to the returned data
-            data.put("image", image);
-
-            // Add the UID to the data
-            data.put("UID", imageUID);
-
-            // Return the data
-            return data;
         } else {
-            return null;
+            database = null;
         }
 
+        // Create the callable
+        Callable<Map<String, Object>> firestoreTask = () -> {
+            // Get the image
+            assert database != null;
+            Future<Map<String, Object>> futureData = database.getDataFromFirestore(imageUID);
+
+            Map<String, Object> data = new HashMap<>();
+            try {
+                // Block until data is retrieved
+                data = futureData.get();
+                Log.d("GetImageFromFirestore", "Data has been received");
+            } catch (InterruptedException e) {
+                // Handle the interrupted exception
+                Thread.currentThread().interrupt();
+                Log.e("GetFromFirestore", "Task was interrupted: " + e.getMessage());
+                return null;
+            } catch (ExecutionException e) {
+                // Handle any other exception
+                Log.e("GetFromFirestore", "Error retrieving document: " + Objects.requireNonNull(e.getCause()).getMessage());
+                return null;
+            }
+
+            // Check if the image actually exists
+            if (data != null) {
+                // Get the blob from the data and convert to an bitmap
+                Bitmap image = blobToBitmap((Blob) Objects.requireNonNull(data.get("image")));
+
+                // Add the bitmap to the returned data
+                data.put("image", image);
+
+                // Add the UID to the data
+                data.put("UID", imageUID);
+
+                // Return the data
+                return data;
+            } else {
+                return null;
+            }
+        };
+
+        // Return the future
+        return callableToCompletableFuture(firestoreTask);
 
     }
 
@@ -504,8 +570,8 @@ public class FirebaseAccess {
      *
      * @param docName The UID of the outer document to delete
      */
-    public void deleteDataFromFirestore(String docName) {
-        this.deleteDataFromFirestore(docName, null, null);
+    public CompletableFuture<Void> deleteDataFromFirestore(String docName) {
+        return this.deleteDataFromFirestore(docName, null, null);
     }
 
     /**
@@ -516,47 +582,54 @@ public class FirebaseAccess {
      * @param innerCollName The name of the inner collection. If this is null, will delete outer document
      * @param innerDocName  The UID of the document in the inner collection. If this is null, will delete outer document
      */
-    public void deleteDataFromFirestore(String outerDocName, FirebaseInnerCollection innerCollName, String innerDocName) {
-        // Get the document reference for the outer/main collection
-        docRef = collRef.document(outerDocName);
+    public CompletableFuture<Void> deleteDataFromFirestore(String outerDocName, FirebaseInnerCollection innerCollName, String innerDocName) {
+        // Create the callable
+        Callable<Void> firestoreTask = () -> {
 
-        // If the document contains an inner collection, they need to be deleted first
-        if (innerCollName == null || innerDocName == null) {
-            // Get the list of inner collections
-            ArrayList<FirebaseInnerCollection> innerCollList = new ArrayList<>();
-            if (databaseType == FirestoreAccessType.EVENTS) {
-                innerCollList.add(FirebaseInnerCollection.eventPosters);
-                innerCollList.add(FirebaseInnerCollection.eventQRCodes);
-                innerCollList.add(FirebaseInnerCollection.promoQRCodes);
-                innerCollList.add(FirebaseInnerCollection.announcements);
-            } else if (databaseType == FirestoreAccessType.USERS) {
-                innerCollList.add(FirebaseInnerCollection.profilePictures);
-            }
+            // Get the document reference for the outer/main collection
+            docRef = collRef.document(outerDocName);
 
-            // Delete all documents in the inner collection
-            for (FirebaseInnerCollection currColl : innerCollList) {
-                // Get the list of documents in the collection
-                ArrayList<Map<String, Object>> allDocs = this.getAllDocuments(outerDocName, currColl);
+            // If the document contains an inner collection, they need to be deleted first
+            if (innerCollName == null || innerDocName == null) {
+                // Get the list of inner collections
+                ArrayList<FirebaseInnerCollection> innerCollList = new ArrayList<>();
+                if (databaseType == FirestoreAccessType.EVENTS) {
+                    innerCollList.add(FirebaseInnerCollection.eventPosters);
+                    innerCollList.add(FirebaseInnerCollection.eventQRCodes);
+                    innerCollList.add(FirebaseInnerCollection.promoQRCodes);
+                    innerCollList.add(FirebaseInnerCollection.announcements);
+                } else if (databaseType == FirestoreAccessType.USERS) {
+                    innerCollList.add(FirebaseInnerCollection.profilePictures);
+                }
 
-                // Go through the list and delete them all
-                if (allDocs != null) {
-                    for (Map<String, Object> currDoc : allDocs) {
-                        deleteDocumentFromFirestore(docRef.collection(currColl.name()).document((String) Objects.requireNonNull(currDoc.get("UID"))));
+                // Delete all documents in the inner collection
+                for (FirebaseInnerCollection currColl : innerCollList) {
+                    // Get the list of documents in the collection
+                    ArrayList<Map<String, Object>> allDocs = this.getAllDocuments(outerDocName, currColl);
+
+                    // Go through the list and delete them all
+                    if (allDocs != null) {
+                        for (Map<String, Object> currDoc : allDocs) {
+                            deleteDocumentFromFirestore(docRef.collection(currColl.name()).document((String) Objects.requireNonNull(currDoc.get("UID")))).get();
+                        }
                     }
                 }
+
+                // Delete the outer collection
+                deleteDocumentFromFirestore(docRef).get();
+            } else {  // This is an inner collection
+                // Get a reference to the inner document
+                DocumentReference innerDocRef = docRef.collection(innerCollName.name()).document(innerDocName);
+
+                // Delete the document
+                this.deleteDocumentFromFirestore(innerDocRef).get();
             }
 
-            // Delete the outer collection
-            deleteDocumentFromFirestore(docRef);
-        } else {  // This is an inner collection
-            // Get a reference to the inner document
-            DocumentReference innerDocRef = docRef.collection(innerCollName.name()).document(innerDocName);
+            return null;
+        };
 
-            // Delete the document
-            this.deleteDocumentFromFirestore(innerDocRef);
-        }
-
-
+        // Return the future
+        return callableToCompletableFuture(firestoreTask);
     }
 
     /**
@@ -564,32 +637,40 @@ public class FirebaseAccess {
      *
      * @param ref A reference to the document to delete
      */
-    private void deleteDocumentFromFirestore(DocumentReference ref) {
-        // Save the document id
-        String docID = ref.getId();
+    private CompletableFuture<Void> deleteDocumentFromFirestore(DocumentReference ref) {
+        // Create the callable
+        Callable<Void> firestoreTask = () -> {
 
-        // Create the delete task
-        Task<Void> task = null;
-        task = ref.delete();
+            // Save the document id
+            String docID = ref.getId();
 
-        // Convert the task to a CompletableFuture
-        CompletableFuture<Void> future = toCompletableFuture(task);
+            // Create the delete task
+            Task<Void> task = null;
+            task = ref.delete();
 
-        // Wait until delete is complete before returning
-        try {
-            // Wait for completion
-            future.get();
-            Log.d("DeleteFromFirestore", docID + "  has been deleted");
-        } catch (InterruptedException e) {
-            // Handle the interrupted exception
-            Thread.currentThread().interrupt();
-            Log.e("DeleteFromFirestore", "Task was interrupted: " + e.getMessage());
-            return;
-        } catch (ExecutionException e) {
-            // Handle any other exception
-            Log.e("DeleteFromFirestore", "Error deleting document: " + docID + " - " + Objects.requireNonNull(e.getCause()).getMessage());
-            return;
-        }
+            // Convert the task to a CompletableFuture
+            CompletableFuture<Void> future = toCompletableFuture(task);
+
+            // Wait until delete is complete before returning
+            try {
+                // Wait for completion
+                future.get();
+                Log.d("DeleteFromFirestore", docID + "  has been deleted");
+                return null;
+            } catch (InterruptedException e) {
+                // Handle the interrupted exception
+                Thread.currentThread().interrupt();
+                Log.e("DeleteFromFirestore", "Task was interrupted: " + e.getMessage());
+                return null;
+            } catch (ExecutionException e) {
+                // Handle any other exception
+                Log.e("DeleteFromFirestore", "Error deleting document: " + docID + " - " + Objects.requireNonNull(e.getCause()).getMessage());
+                return null;
+            }
+        };
+
+        // Return the future
+        return callableToCompletableFuture(firestoreTask);
     }
 
     /**
@@ -829,5 +910,6 @@ public class FirebaseAccess {
 
 
     }
+
 
 }
