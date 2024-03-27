@@ -605,7 +605,8 @@ public class FirebaseAccess {
                 // Delete all documents in the inner collection
                 for (FirebaseInnerCollection currColl : innerCollList) {
                     // Get the list of documents in the collection
-                    ArrayList<Map<String, Object>> allDocs = this.getAllDocuments(outerDocName, currColl);
+                    CompletableFuture<ArrayList<Map<String, Object>>> futureDocs = this.getAllDocuments(outerDocName, currColl);
+                    ArrayList<Map<String, Object>> allDocs = futureDocs.get();
 
                     // Go through the list and delete them all
                     if (allDocs != null) {
@@ -679,7 +680,7 @@ public class FirebaseAccess {
      *
      * @return The list of document data
      */
-    public ArrayList<Map<String, Object>> getAllDocuments() {
+    public CompletableFuture<ArrayList<Map<String, Object>>> getAllDocuments() {
         return this.getAllDocuments(null, null);
     }
 
@@ -691,67 +692,73 @@ public class FirebaseAccess {
      * @param innerCollName The name of the inner collection, if null gets the data from the main collection
      * @return The list of document data
      */
-    public ArrayList<Map<String, Object>> getAllDocuments(String outerDocName, FirebaseInnerCollection innerCollName) {
-        // Create the get task
-        Task<QuerySnapshot> task = null;
+    public CompletableFuture<ArrayList<Map<String, Object>>> getAllDocuments(String outerDocName, FirebaseInnerCollection innerCollName) {
+        // Create the callable
+        Callable<ArrayList<Map<String, Object>>> firestoreTask = () -> {
+            // Create the get task
+            Task<QuerySnapshot> task = null;
 
-        // Get the documents from firebase
-        if (innerCollName != null && outerDocName != null) {
-            task = collRef.document(outerDocName).collection(innerCollName.name()).get();
-        } else {
-            task = collRef.get();
-        }
-
-        // Convert the task to a CompletableFuture
-        CompletableFuture<QuerySnapshot> future = toCompletableFuture(task);
-
-        // Get the output
-        QuerySnapshot snapshot = null;
-        try {
-            // Block until data is retrieved
-            snapshot = future.get();
-            Log.d("GetAllFromFirestore", "Data has been received");
-        } catch (InterruptedException e) {
-            // Handle the interrupted exception
-            Thread.currentThread().interrupt();
-            Log.e("GetAllFromFirestore", "Task was interrupted: " + e.getMessage());
-            return null;
-        } catch (ExecutionException e) {
-            // Handle any other exception
-            Log.e("GetAllFromFirestore", "Error retrieving documents: " + Objects.requireNonNull(e.getCause()).getMessage());
-            return null;
-        }
-
-        // Data was retrieved successfully
-        ArrayList<Map<String, Object>> data = new ArrayList<>();
-        Map<String, Object> docData = null;
-        // If the data actually exists
-        if (snapshot != null) {
-            for (QueryDocumentSnapshot document : snapshot) {
-                // Get the data from the document
-                docData = document.getData();
-
-                // Check if the document is the init document
-                if (document.getId().equals("XXXX")) {
-                    continue;
-                }
-
-                // Attach the UID
-                docData.put("UID", document.getId());
-
-                // Add to the array list
-                data.add(docData);
+            // Get the documents from firebase
+            if (innerCollName != null && outerDocName != null) {
+                task = collRef.document(outerDocName).collection(innerCollName.name()).get();
+            } else {
+                task = collRef.get();
             }
-        } else {
-            Log.e("GetAllFromFirestore", "The collection does not exist");
-        }
 
-        // Return the received data
-        if (data.isEmpty()) {
-            return null;
-        } else {
-            return data;
-        }
+            // Convert the task to a CompletableFuture
+            CompletableFuture<QuerySnapshot> future = toCompletableFuture(task);
+
+            // Get the output
+            QuerySnapshot snapshot = null;
+            try {
+                // Block until data is retrieved
+                snapshot = future.get();
+                Log.d("GetAllFromFirestore", "Data has been received");
+            } catch (InterruptedException e) {
+                // Handle the interrupted exception
+                Thread.currentThread().interrupt();
+                Log.e("GetAllFromFirestore", "Task was interrupted: " + e.getMessage());
+                return null;
+            } catch (ExecutionException e) {
+                // Handle any other exception
+                Log.e("GetAllFromFirestore", "Error retrieving documents: " + Objects.requireNonNull(e.getCause()).getMessage());
+                return null;
+            }
+
+            // Data was retrieved successfully
+            ArrayList<Map<String, Object>> data = new ArrayList<>();
+            Map<String, Object> docData = null;
+            // If the data actually exists
+            if (snapshot != null) {
+                for (QueryDocumentSnapshot document : snapshot) {
+                    // Get the data from the document
+                    docData = document.getData();
+
+                    // Check if the document is the init document
+                    if (document.getId().equals("XXXX")) {
+                        continue;
+                    }
+
+                    // Attach the UID
+                    docData.put("UID", document.getId());
+
+                    // Add to the array list
+                    data.add(docData);
+                }
+            } else {
+                Log.e("GetAllFromFirestore", "The collection does not exist");
+            }
+
+            // Return the received data
+            if (data.isEmpty()) {
+                return null;
+            } else {
+                return data;
+            }
+        };
+
+        // Return the future
+        return callableToCompletableFuture(firestoreTask);
     }
 
     /**
@@ -762,7 +769,7 @@ public class FirebaseAccess {
      * @param imageUID  The UID of the image to delete
      * @param imageType The type of image (Ex. promoQRCCode)
      */
-    public void deleteImageFromFirestore(String outerDocName, String imageUID, ImageType imageType) {
+    public CompletableFuture<Void> deleteImageFromFirestore(String outerDocName, String imageUID, ImageType imageType) {
         // Check if the database is valid to delete images
         if (databaseType == FirestoreAccessType.IMAGES || databaseType == FirestoreAccessType.QRCODES) {
             // You shouldn't be calling this function on here
@@ -773,19 +780,29 @@ public class FirebaseAccess {
         // Convert the ImageType to a FirebaseInnerCollection
         FirebaseInnerCollection innerColl = FirebaseInnerCollection.valueOf(imageType.name());
 
-        // Delete the link to the image from the origin
-        this.deleteDataFromFirestore(outerDocName, innerColl, imageUID);
+        // Create the callable
+        Callable<Void> firestoreTask = () -> {
+            // Delete the link to the image from the origin
+            this.deleteDataFromFirestore(outerDocName, innerColl, imageUID).get();
 
-        // Find the correct images database
-        FirebaseAccess database = null;
-        if (imageType == ImageType.eventPosters || imageType == ImageType.profilePictures) {
-            database = new FirebaseAccess(FirestoreAccessType.IMAGES);
-        } else if (imageType == ImageType.eventQRCodes || imageType == ImageType.promoQRCodes) {
-            database = new FirebaseAccess(FirestoreAccessType.QRCODES);
-        }
+            // Find the correct images database
+            FirebaseAccess database = null;
+            if (imageType == ImageType.eventPosters || imageType == ImageType.profilePictures) {
+                database = new FirebaseAccess(FirestoreAccessType.IMAGES);
+            } else if (imageType == ImageType.eventQRCodes || imageType == ImageType.promoQRCodes) {
+                database = new FirebaseAccess(FirestoreAccessType.QRCODES);
+            }
 
-        // Delete the image from the database
-        database.deleteDataFromFirestore(imageUID);
+            // Delete the image from the database
+            database.deleteDataFromFirestore(imageUID).get();
+
+            return null;
+        };
+
+        // Return the future
+        return callableToCompletableFuture(firestoreTask);
+
+
 
     }
 
@@ -797,38 +814,45 @@ public class FirebaseAccess {
      * @param imageType    The the type of image you want to retrieve, if null gets the data from the main collection
      * @return The list of images and UIDs as a Map, or null if no images were found
      */
-    public ArrayList<Map<String, Object>> getAllRelatedImagesFromFirestore(String outerDocName, ImageType imageType) {
+    public CompletableFuture<ArrayList<Map<String, Object>>> getAllRelatedImagesFromFirestore(String outerDocName, ImageType imageType) {
         // Convert the ImageType to a FirebaseInnerCollection
         FirebaseInnerCollection innerColl = FirebaseInnerCollection.valueOf(imageType.name());
 
-        // Get all the documents from the given collection
-        ArrayList<Map<String, Object>> data = this.getAllDocuments(outerDocName, innerColl);
+        // Create callable
+        Callable<ArrayList<Map<String, Object>>> firestoreTask = () -> {
+
+            // Get all the documents from the given collection
+            ArrayList<Map<String, Object>> data = this.getAllDocuments(outerDocName, innerColl).get();
 
 
-        // Get the images from Firebase Storage
-        ArrayList<Map<String, Object>> outList = new ArrayList<>();
-        if (data != null) {
-            for (Map<String, Object> filePointer : data) {
-                // Create the map
-                HashMap<String, Object> outData = new HashMap<>();
+            // Get the images from Firebase Storage
+            ArrayList<Map<String, Object>> outList = new ArrayList<>();
+            if (data != null) {
+                for (Map<String, Object> filePointer : data) {
+                    // Create the map
+                    HashMap<String, Object> outData = new HashMap<>();
 
-                // Get the UID
-                outData.put("UID", filePointer.get("UID"));
+                    // Get the UID
+                    outData.put("UID", filePointer.get("UID"));
 
-                // Get the image
-                outData.put("image", this.getImageFromFirestore((String) filePointer.get("UID"), imageType));
+                    // Get the image
+                    outData.put("image", this.getImageFromFirestore((String) filePointer.get("UID"), imageType).get());
 
-                // Put the map in the list
-                outList.add(outData);
+                    // Put the map in the list
+                    outList.add(outData);
+                }
             }
-        }
 
-        // Return the list of images
-        if (outList.isEmpty()) {
-            return null;
-        } else {
-            return outList;
-        }
+            // Return the list of images
+            if (outList.isEmpty()) {
+                return null;
+            } else {
+                return outList;
+            }
+        };
+
+        // Return the future
+        return callableToCompletableFuture(firestoreTask);
     }
 
 
@@ -838,40 +862,49 @@ public class FirebaseAccess {
      * @param imageType The type of images to get
      * @return The list of images and UIDs as a Map, or null if no images were found
      */
-    public ArrayList<Map<String, Object>> getAllImagesFromFirestore(ImageType imageType) {
+    public CompletableFuture<ArrayList<Map<String, Object>>> getAllImagesFromFirestore(ImageType imageType) {
         // Find the correct image collection
-        FirebaseAccess database = null;
+        FirebaseAccess database;
         if (imageType == ImageType.eventPosters || imageType == ImageType.profilePictures) {
             database = new FirebaseAccess(FirestoreAccessType.IMAGES);
         } else if (imageType == ImageType.eventQRCodes || imageType == ImageType.promoQRCodes) {
             database = new FirebaseAccess(FirestoreAccessType.QRCODES);
+        } else {
+            database = null;
         }
 
-        // Get all the documents in the database
-        assert database != null;
-        ArrayList<Map<String, Object>> data = database.getAllDocuments();
+        // Create the callable
+        Callable<ArrayList<Map<String, Object>>> firestoreTask = () -> {
 
-        // Go through the documents and add the ones that match the given type to the output list
-        ArrayList<Map<String, Object>> outList = new ArrayList<>();
-        if (data != null) {
-            for (Map<String, Object> potentialImage : data) {
-                // Check if the image matches the type
-                if (Objects.equals((String) potentialImage.get("type"), imageType.name())) {
-                    // Convert the image to a bitmap and attach it to the data
-                    potentialImage.put("image", blobToBitmap((Blob) Objects.requireNonNull(potentialImage.get("image"))));
+            // Get all the documents in the database
+            assert database != null;
+            ArrayList<Map<String, Object>> data = database.getAllDocuments().get();
 
-                    // Add the image to the output
-                    outList.add(potentialImage);
+            // Go through the documents and add the ones that match the given type to the output list
+            ArrayList<Map<String, Object>> outList = new ArrayList<>();
+            if (data != null) {
+                for (Map<String, Object> potentialImage : data) {
+                    // Check if the image matches the type
+                    if (Objects.equals((String) potentialImage.get("type"), imageType.name())) {
+                        // Convert the image to a bitmap and attach it to the data
+                        potentialImage.put("image", blobToBitmap((Blob) Objects.requireNonNull(potentialImage.get("image"))));
+
+                        // Add the image to the output
+                        outList.add(potentialImage);
+                    }
                 }
             }
-        }
 
-        // Return the list of images
-        if (outList.isEmpty()) {
-            return null;
-        } else {
-            return outList;
-        }
+            // Return the list of images
+            if (outList.isEmpty()) {
+                return null;
+            } else {
+                return outList;
+            }
+        };
+
+        // Return the future
+        return callableToCompletableFuture(firestoreTask);
 
     }
 
@@ -879,7 +912,7 @@ public class FirebaseAccess {
      * This function is callable from any access
      * DELETES ALL DOCUMENTS ACROSS ALL COLLECTIONS
      */
-    public void deleteAllDataInFirestore() {
+    public CompletableFuture<Void> deleteAllDataInFirestore() {
         // Create an array list of all collections
         ArrayList<FirebaseAccess> databases = new ArrayList<>();
 
@@ -888,27 +921,31 @@ public class FirebaseAccess {
             databases.add(new FirebaseAccess(access));
         }
 
-        // For each collection
-        for (FirebaseAccess database : databases) {
-            // Find all documents
-            ArrayList<Map<String, Object>> data = database.getAllDocuments();
+        // Create the callable
+        Callable<Void> firestoreTask = () -> {
+            // For each collection
+            for (FirebaseAccess database : databases) {
+                // Find all documents
+                ArrayList<Map<String, Object>> data = database.getAllDocuments().get();
 
-            // Check if the document exists
-            if (data != null) {
-                // Delete each document
-                for (Map<String, Object> document : data) {
-                    database.deleteDataFromFirestore((String) document.get("UID"));
+                // Check if the document exists
+                if (data != null) {
+                    // Delete each document
+                    for (Map<String, Object> document : data) {
+                        database.deleteDataFromFirestore((String) document.get("UID"));
+                    }
                 }
+
+                // Re-initialize the collections
+                Map<String, Object> newData = new HashMap<>();
+                database.storeDataInFirestore("XXXX", newData);
             }
 
-            // Re-initialize the collections
-            Map<String, Object> newData = new HashMap<>();
-            database.storeDataInFirestore("XXXX", newData);
+            return null;
+        };
 
-
-        }
-
-
+        // Return the future
+        return callableToCompletableFuture(firestoreTask);
     }
 
 
