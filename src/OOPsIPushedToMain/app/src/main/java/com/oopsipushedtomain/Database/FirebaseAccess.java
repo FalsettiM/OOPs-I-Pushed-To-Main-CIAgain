@@ -29,6 +29,7 @@ import java.util.concurrent.Future;
 /**
  * Class for all Firebase accesses
  * Has methods for accessing both storage and Firestore database
+ * Methods will return futures, use .thenAccept or .thenApply to handle the output!!!
  *
  * @author Matteo Falsetti
  * @version 1.0
