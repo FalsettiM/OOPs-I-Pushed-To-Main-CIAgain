@@ -2,7 +2,7 @@ package com.oopsipushedtomain.Database;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.telecom.Call;
+
 import android.util.Log;
 
 import com.google.android.gms.tasks.Task;
@@ -71,9 +71,6 @@ public class FirebaseAccess {
 
         // Set the collection
         switch (databaseType) {
-            case ANNOUNCEMENTS:
-                collRef = db.collection("announcements");
-                break;
             case EVENTS:
                 collRef = db.collection("events");
                 break;
@@ -183,6 +180,65 @@ public class FirebaseAccess {
 
     // Chat GPT: Is there a way to wait until data is confirmed stored in Firebase database using a future
 
+    private static String generateNewUID(FirestoreAccessType outerColl, FirebaseInnerCollection innerCollName) {
+        // Get a database reference
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // If the inner collection is null, generate for the outer collection
+        if (innerCollName == null) {
+            switch (outerColl) {
+                case QRCODES:
+                    return "QRCD-" + db.collection("qrcodes").document().getId().toUpperCase();
+                case USERS:
+                    return "USER-" + db.collection("users").document().getId().toUpperCase();
+                case IMAGES:
+                    return "IMGE-" + db.collection("images").document().getId().toUpperCase();
+                case EVENTS:
+                    return "EVNT-" + db.collection("events").document().getId().toUpperCase();
+            }
+        } else {    // Inner collection is given
+            String UIDBase;
+            switch (outerColl) {
+                // Events
+                case EVENTS:
+                    UIDBase = db.collection("events").document().collection(innerCollName.name()).document().getId().toUpperCase();
+                    // Get the correct prefix
+                    switch (innerCollName) {
+                        case announcements:
+                            return "ANMT-" + UIDBase;
+                        case checkInCoords:
+                            return "COOR-" + UIDBase;
+                        case eventPosters:
+                            return "IMGE-" + UIDBase;
+                        case eventQRCodes:
+                        case promoQRCodes:
+                            return "QRCD-" + UIDBase;
+                        default:
+                            throw new IllegalArgumentException("Invalid database combination!!");
+                    }
+
+                    // Users
+                case USERS:
+                    UIDBase = db.collection("users").document().collection(innerCollName.name()).document().getId().toUpperCase();
+                    // Get the correct prefix
+                    switch (innerCollName) {
+                        case profilePictures:
+                            return "IMGE-" + UIDBase;
+                        default:
+                            throw new IllegalArgumentException("Invalid database combination!!");
+                    }
+
+                case IMAGES:
+                    throw new IllegalArgumentException("Images don't have any inner collections!!");
+                case QRCODES:
+                    throw new IllegalArgumentException("QR codes don't have any inner collections!!");
+            }
+        }
+
+        // If the inputs are invalid, throw an error
+        throw new IllegalArgumentException("Invalid database for generate UID, use the appropriate store instead");
+    }
+
     /**
      * Converts a callable into a completable future
      *
@@ -234,44 +290,71 @@ public class FirebaseAccess {
      * @return A map containing the UID of the outer document Map.get("outer") and the UID of the inner document Map.get("inner")
      */
     public Map<String, String> storeDataInFirestore(String outerDocName, FirebaseInnerCollection innerCollName, String innerDocName, Map<String, Object> data) {
+        boolean isValidDatabase = false;
+        // Check for a valid combination of outer and inner collection
+        switch (this.databaseType) {
+            case QRCODES:
+            case IMAGES:
+                isValidDatabase = innerCollName == null;
+                break;
+            case USERS:
+                if (innerCollName != null) {
+                    switch (innerCollName) {
+                        case checkInCoords:
+                        case announcements:
+                        case promoQRCodes:
+                        case eventPosters:
+                        case eventQRCodes:
+                            // Wrong collection
+                            break;
+                        case signedUpEvents:
+                        case checkedInEvents:
+                        case profilePictures:
+                            // Require UID
+                            isValidDatabase = innerDocName != null;
+                    }
+                } else isValidDatabase = innerDocName == null;
+                break;
+            case EVENTS:
+                if (innerCollName != null) {
+                    switch (innerCollName) {
+                        case eventPosters:
+                        case eventQRCodes:
+                        case promoQRCodes:
+                            // Require inner doc UID to be specified
+                            isValidDatabase = innerDocName != null;
+                            break;
+                        case checkInCoords:
+                        case announcements:
+                            // Can generate doc UID
+                            isValidDatabase = true;
+                            break;
+                        case signedUpEvents:
+                        case checkedInEvents:
+                        case profilePictures:
+                            // Wrong collection
+                            break;
+
+                    }
+                } else isValidDatabase = innerDocName == null;
+                break;
+            default:
+                // Default is false
+        }
+
+        if (!isValidDatabase) {
+            throw new IllegalArgumentException("Invalid database to store in!!");
+        }
 
         // If the outerDocName is not given, make a new one
         if (outerDocName == null) {
-            switch (databaseType) {
-                case EVENTS:
-                    outerDocName = "EVNT-" + collRef.document().getId().toUpperCase();
-                    break;
-                case USERS:
-                    outerDocName = "USER-" + collRef.document().getId().toUpperCase();
-                    break;
-                case ANNOUNCEMENTS:
-                    outerDocName = "ANMT-" + collRef.document().getId().toUpperCase();
-                    break;
-                case QRCODES:
-                    Log.e("StoreinFirestore", "Use storeImageInFirebaseStorage() to store qrcodes");
-                    return null;
-                case IMAGES:
-                    Log.e("StoreinFirestore", "Use storeImageInFirebaseStorage() to store an image");
-                    return null;
-            }
+            outerDocName = generateNewUID(this.databaseType, null);
         }
 
         // If the inner document name is not specified, create a new one
         // Essentially a special case for announcements
         if (innerDocName == null && innerCollName != null) {
-            switch (innerCollName) {
-                case eventPosters:
-                case eventQRCodes:
-                case promoQRCodes:
-                case profilePictures:
-                    throw new IllegalArgumentException("Use storeImageInFirestore instead for " + innerCollName.name());
-                case announcements:
-                    innerDocName = "ANMT-" + collRef.document().getId().toUpperCase();
-                    break;
-                case checkedInEvents:
-                case signedUpEvents:
-                    throw new IllegalArgumentException("Create an event first!!");
-            }
+            innerDocName = generateNewUID(this.databaseType, innerCollName);
         } else if (innerCollName == null && innerDocName != null) {
             throw new IllegalArgumentException("Inner collection must be specified!");
         }
@@ -329,8 +412,35 @@ public class FirebaseAccess {
      * @return The UID of the image or null if there was an error
      */
     public String storeImageInFirestore(String attachedTo, String imageUID, ImageType imageType, Bitmap image, Map<String, Object> imageData) {
-        // Check if this the constructor database parameters are correct
-        boolean isValidDatabase = this.databaseType == FirestoreAccessType.USERS || this.databaseType == FirestoreAccessType.EVENTS;
+        assert attachedTo != null;
+        assert imageType != null;
+
+        boolean isValidDatabase = false;
+        // Check for a valid combination of outer and inner collection
+        switch (this.databaseType) {
+            case QRCODES:
+            case IMAGES:
+                break;
+            case USERS:
+                switch (imageType) {
+                    case profilePictures:
+                        isValidDatabase = true;
+                    case promoQRCodes:
+                    case eventQRCodes:
+                    case eventPosters:
+                        break;
+                }
+            case EVENTS:
+                switch (imageType){
+                    case profilePictures:
+                        break;
+                    case eventQRCodes:
+                    case eventPosters:
+                    case promoQRCodes:
+                        isValidDatabase = true;
+                }
+        }
+
 
         // Throw exception if the database is not valid
         if (!isValidDatabase) {
@@ -348,11 +458,9 @@ public class FirebaseAccess {
         // If no image UID is given, create a new one
         boolean newImage = false;
         if (imageUID == null) {
-            if (imageType == ImageType.eventPosters || imageType == ImageType.profilePictures) {
-                imageUID = "IMGE-" + collRef.document().getId().toUpperCase();
-            } else if (imageType == ImageType.eventQRCodes || imageType == ImageType.promoQRCodes) {
-                imageUID = "QRCD-" + collRef.document().getId().toUpperCase();
-            }
+            // Convert the imageType to an inner collection
+            FirebaseInnerCollection innerColl = FirebaseInnerCollection.valueOf(imageType.name());
+            imageUID = generateNewUID(this.databaseType, null);
         }
 
         // Convert the image to a Blob
@@ -802,7 +910,6 @@ public class FirebaseAccess {
 
         // Return the future
         return callableToCompletableFuture(firestoreTask);
-
 
 
     }

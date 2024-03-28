@@ -284,7 +284,7 @@ public class FirebaseAccessUnitTest {
             assertEquals(data.get("UID"), storeUID.get("inner"));
 
             // Delete the new document
-            database.deleteDataFromFirestore(storeUID.get("outer"));
+            database.deleteDataFromFirestore(storeUID.get("outer")).get();
 
             // Test creating a new inner document for an image
             assertThrows(IllegalArgumentException.class, () -> database.storeDataInFirestore(outerUID, FirebaseInnerCollection.eventPosters, null, innerTestData));
@@ -353,7 +353,7 @@ public class FirebaseAccessUnitTest {
             assertNotNull(image);
 
             // Delete the image to clean up
-            database.deleteImageFromFirestore(outerUID, storeUID, ImageType.promoQRCodes);
+            database.deleteImageFromFirestore(outerUID, storeUID, ImageType.promoQRCodes).get();
 
             // Test invalid database
             FirebaseAccess database2 = new FirebaseAccess(FirestoreAccessType.IMAGES);
@@ -372,7 +372,7 @@ public class FirebaseAccessUnitTest {
         try {
             if (performDeleteAll) {
                 // Delete all the documents in Firestore
-                database.deleteAllDataInFirestore();
+                database.deleteAllDataInFirestore().get();
 
                 // Check if the data was deleted and the collection still exits
                 Map<String, Object> data = database.getDataFromFirestore("XXXX").get();
@@ -498,10 +498,16 @@ public class FirebaseAccessUnitTest {
 
     @After
     public void cleanUpDatabase() {
-        // Delete all of the new documents and images
-        database.deleteImageFromFirestore(outerUID, imageUID, imageType);
-        database.deleteImageFromFirestore(outerUID, imageUID, ImageType.eventPosters);
-        database.deleteDataFromFirestore(outerUID);
+        try {
+            // Delete all of the new documents and images
+            database.deleteImageFromFirestore(outerUID, imageUID, imageType).get();
+            database.deleteImageFromFirestore(outerUID, imageUID, ImageType.eventPosters).get();
+            database.deleteDataFromFirestore(outerUID).get();
+        } catch (Exception e) {
+            // There was an error, the test failed
+            Log.e("CleanUp", "Error: " + e.getMessage());
+            fail();
+        }
     }
 
 
