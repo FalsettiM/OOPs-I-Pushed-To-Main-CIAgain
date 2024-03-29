@@ -19,6 +19,7 @@ glide = "5.0.0-rc01"
 [libraries]
 androidx-espresso-core = { module = "androidx.support.test.espresso:espresso-core", version.ref = "espressoCoreVersion" }
 androidx-espresso-core-v330 = { module = "androidx.test.espresso:espresso-core", version.ref = "androidxEspressoCore" }
+androidx-espresso-intents = { module = "androidx.test.espresso:espresso-intents", version.ref = "espressoCore" }
 androidx-junit-v112 = { module = "androidx.test.ext:junit", version.ref = "androidxJunit" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
