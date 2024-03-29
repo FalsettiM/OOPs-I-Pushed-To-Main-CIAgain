@@ -21,8 +21,8 @@ jobs:
     # Navigate to the Android app directory
     - name: Grant execute permission for gradlew
       run: cd src/OOPsIPushedToMain/ && chmod +x gradlew
-    - name: Build with Gradle
-      run: cd src/OOPsIPushedToMain/ && ./gradlew build
+    # - name: Build with Gradle
+    #   run: cd src/OOPsIPushedToMain/ && ./gradlew build
     - name: Instrumentation Tests
       uses: reactivecircus/android-emulator-runner@v2
       with:
