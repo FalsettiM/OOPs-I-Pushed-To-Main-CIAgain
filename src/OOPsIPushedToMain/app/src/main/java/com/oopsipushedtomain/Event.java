@@ -28,6 +28,7 @@ import java.util.Map;
  */
 
 
+
 public class Event implements Serializable {
     /**
      * The UID of the event
